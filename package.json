@@ -1,0 +1,41 @@
+{
+  "name": "wacloudsenderseva",
+  "version": "1.0.0",
+  "description": "WhatsApp Cloud Bulk Sender Platform - Ultra Edition",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18.x"
+  },
+  "keywords": [
+    "whatsapp",
+    "bulk-sender",
+    "cloud",
+    "automation"
+  ],
+  "author": "Sachin Bamniya",
+  "license": "MIT",
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.7.8",
+    "axios": "^1.6.7",
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.20.2",
+    "compression": "^1.7.4",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "express-fileupload": "^1.4.3",
+    "express-session": "^1.17.3",
+    "fs-extra": "^11.2.0",
+    "helmet": "^7.1.0",
+    "moment": "^2.30.1",
+    "pino": "^8.19.0",
+    "qrcode": "^1.5.3",
+    "qrcode-terminal": "^0.12.0",
+    "socket.io": "^4.6.1",
+    "sql.js": "^1.13.0",
+    "uuid": "^9.0.1",
+    "xlsx": "^0.18.5"
+  }
+}

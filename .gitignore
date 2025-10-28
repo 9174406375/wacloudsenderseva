@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Database
+data/*.db
+data/*.db-journal
+
+# WhatsApp Sessions
+auth_info/
+
+# Uploads
+uploads/*
+!uploads/.gitkeep
+
+# Exports
+exports/*
+!exports/.gitkeep
+
+# Environment
+.env
+.env.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

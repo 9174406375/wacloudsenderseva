@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - WhatsApp Bulk Sender</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Notification Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- Main Container -->
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="fab fa-whatsapp"></i>
+                <h2>WA Sender</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-section="campaign">
+                    <i class="fas fa-paper-plane"></i> New Campaign
+                </a>
+                <a href="#" class="nav-item" data-section="active">
+                    <i class="fas fa-tasks"></i> Active Campaigns
+                </a>
+                <a href="#" class="nav-item" data-section="history">
+                    <i class="fas fa-history"></i> History
+                </a>
+                <a href="#" class="nav-item" data-section="stats">
+                    <i class="fas fa-chart-bar"></i> Statistics
+                </a>
+                <a href="/admin" class="nav-item">
+                    <i class="fas fa-user-shield"></i> Admin
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="whatsapp-status" id="dashboardStatus">
+                    <span class="status-dot connected"></span>
+                    <span class="status-text">Connected</span>
+                </div>
+                <button class="btn btn-danger btn-sm" id="logoutDashBtn">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <!-- Header -->
+            <header class="dashboard-header">
+                <div class="header-left">
+                    <h1 id="sectionTitle">Create New Campaign</h1>
+                    <p id="sectionSubtitle">Send bulk messages to multiple contacts</p>
+                </div>
+                <div class="header-right">
+                    <div class="daily-limit-card">
+                        <i class="fas fa-envelope"></i>
+                        <div>
+                            <p class="limit-text">Today's Messages</p>
+                            <p class="limit-count" id="dailyCount">0 / 1000</p>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Campaign Section -->
+            <section class="content-section active" id="campaign-section">
+                <div class="campaign-form">
+                    <!-- Step 1: Recipients -->
+                    <div class="form-card">
+                        <div class="form-card-header">
+                            <h3><i class="fas fa-users"></i> Step 1: Add Recipients</h3>
+                            <span class="badge" id="recipientCount">0 contacts</span>
+                        </div>
+                        <div class="form-card-body">
+                            <div class="tabs-horizontal">
+                                <button class="tab-h-btn active" data-tab-h="paste">
+                                    <i class="fas fa-paste"></i> Paste Numbers
+                                </button>
+                                <button class="tab-h-btn" data-tab-h="upload">
+                                    <i class="fas fa-file-upload"></i> Upload CSV
+                                </button>
+                            </div>
+
+                            <!-- Paste Tab -->
+                            <div class="tab-h-content active" id="paste-tab-h">
+                                <div class="form-group">
+                                    <label>Enter phone numbers (one per line)</label>
+                                    <textarea id="phoneNumbersInput" class="form-control" rows="8" placeholder="917440637596&#10;919876543210&#10;918888777766&#10;..."></textarea>
+                                    <small class="form-text">
+                                        <i class="fas fa-info-circle"></i> Format: Country code + number (e.g., 917440637596)
+                                    </small>
+                                </div>
+                                <button class="btn btn-blue" id="parseNumbersBtn">
+                                    <i class="fas fa-check-circle"></i> Validate Numbers
+                                </button>
+                            </div>
+
+                            <!-- Upload Tab -->
+                            <div class="tab-h-content" id="upload-tab-h">
+                                <div class="upload-area" id="uploadArea">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p>Drag & drop CSV file here or click to browse</p>
+                                    <input type="file" id="csvFileInput" accept=".csv,.xlsx,.xls" hidden>
+                                    <button class="btn btn-outline" onclick="document.getElementById('csvFileInput').click()">
+                                        <i class="fas fa-folder-open"></i> Select File
+                                    </button>
+                                </div>
+                                <div id="uploadedFile" style="display: none;">
+                                    <div class="file-preview">
+                                        <i class="fas fa-file-csv"></i>
+                                        <span id="fileName">file.csv</span>
+                                        <button class="btn-icon" onclick="clearFile()">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="validated-numbers" id="validatedNumbers" style="display: none;">
+                                <div class="success-box">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span id="validCount">0</span> valid numbers found
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Message -->
+                    <div class="form-card">
+                        <div class="form-card-header">
+                            <h3><i class="fas fa-comment-dots"></i> Step 2: Compose Message</h3>
+                        </div>
+                        <div class="form-card-body">
+                            <div class="form-group">
+                                <label>Campaign Name</label>
+                                <input type="text" id="campaignName" class="form-control" placeholder="e.g., Diwali Offer 2025">
+                            </div>
+                            <div class="form-group">
+                                <label>Message Text</label>
+                                <textarea id="messageText" class="form-control" rows="6" placeholder="Type your message here...
+
+Use variables:
+{name} - Recipient's name
+{number} - Phone number"></textarea>
+                                <small class="form-text">
+                                    <i class="fas fa-lightbulb"></i> Tip: Use variables for personalization
+                                </small>
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    <i class="fas fa-image"></i> Attach Media (Optional)
+                                </label>
+                                <input type="file" id="mediaFile" class="form-control" accept="image/*,video/*,.pdf">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Anti-Ban Settings -->
+                    <div class="form-card highlight-card">
+                        <div class="form-card-header">
+                            <h3><i class="fas fa-shield-alt"></i> Step 3: Anti-Ban Protection</h3>
+                            <span class="badge badge-success">Recommended</span>
+                        </div>
+                        <div class="form-card-body">
+                            <div class="anti-ban-settings">
+                                <div class="setting-item">
+                                    <div class="setting-info">
+                                        <label>Delay Between Messages</label>
+                                        <p>Time to wait between each message (prevents spam detection)</p>
+                                    </div>
+                                    <select id="delaySelect" class="form-control">
+                                        <option value="3000">3 seconds (Fast - Higher risk)</option>
+                                        <option value="5000">5 seconds (Normal)</option>
+                                        <option value="10000">10 seconds (Safe)</option>
+                                        <option value="15000">15 seconds (Very Safe)</option>
+                                        <option value="30000">30 seconds (Ultra Safe)</option>
+                                        <option value="60000">1 minute (Maximum Safety)</option>
+                                        <option value="90000" selected>90 seconds (Recommended - Anti-Ban)</option>
+                                        <option value="120000">2 minutes (WhatsApp Official Recommended)</option>
+                                    </select>
+                                </div>
+
+                                <div class="setting-item">
+                                    <div class="setting-info">
+                                        <label>Random Delay Variation</label>
+                                        <p>Add random intervals to mimic human behavior</p>
+                                    </div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="randomDelayToggle" checked>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </div>
+
+                                <div class="setting-item">
+                                    <div class="setting-info">
+                                        <label>Message Variation (Spintax)</label>
+                                        <p>Slightly modify each message to avoid duplicate detection</p>
+                                    </div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="spintaxToggle">
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </div>
+
+                                <div class="setting-item">
+                                    <div class="setting-info">
+                                        <label>Batch Sending</label>
+                                        <p>Send in small batches with breaks (e.g., 50 messages per batch)</p>
+                                    </div>
+                                    <input type="number" id="batchSize" class="form-control" value="50" min="10" max="100">
+                                </div>
+
+                                <div class="info-box-warning">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <div>
+                                        <strong>Anti-Ban Tips:</strong>
+                                        <ul>
+                                            <li>Use 90-120 second delays for maximum safety</li>
+                                            <li>Enable random variations to mimic human behavior</li>
+                                            <li>Send max 200-300 messages per day for new numbers</li>
+                                            <li>Gradually increase volume over 2-3 weeks</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button class="btn btn-success btn-lg btn-block" id="startCampaignBtn">
+                        <i class="fas fa-rocket"></i> Start Campaign
+                    </button>
+                </div>
+            </section>
+
+            <!-- Active Campaigns Section -->
+            <section class="content-section" id="active-section">
+                <div class="campaigns-list" id="activeCampaignsList">
+                    <p class="empty-state">No active campaigns</p>
+                </div>
+            </section>
+
+            <!-- History Section -->
+            <section class="content-section" id="history-section">
+                <div class="history-filters">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="completed">Completed</button>
+                    <button class="filter-btn" data-filter="stopped">Stopped</button>
+                    <button class="filter-btn" data-filter="failed">Failed</button>
+                </div>
+                <div class="campaigns-list" id="historyCampaignsList">
+                    <p class="empty-state">No campaign history</p>
+                </div>
+            </section>
+
+            <!-- Statistics Section -->
+            <section class="content-section" id="stats-section">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <i class="fas fa-paper-plane"></i>
+                        <h3 id="totalSent">0</h3>
+                        <p>Total Sent</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-check-circle"></i>
+                        <h3 id="totalSuccess">0</h3>
+                        <p>Successful</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-times-circle"></i>
+                        <h3 id="totalFailed">0</h3>
+                        <p>Failed</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-percentage"></i>
+                        <h3 id="successRate">0%</h3>
+                        <p>Success Rate</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Campaign Progress Modal -->
+    <div class="modal" id="progressModal" style="display: none;">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h2><i class="fas fa-chart-line"></i> Campaign Progress</h2>
+                <button class="modal-close" onclick="closeProgressModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="progress-summary">
+                    <h3 id="progressCampaignName">Campaign Name</h3>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-fill" id="progressBarFill"></div>
+                        <span class="progress-percentage" id="progressPercentage">0%</span>
+                    </div>
+                    <div class="progress-stats">
+                        <div class="progress-stat success">
+                            <i class="fas fa-check-circle"></i>
+                            <span id="progressSent">0</span> Sent
+                        </div>
+                        <div class="progress-stat failed">
+                            <i class="fas fa-times-circle"></i>
+                            <span id="progressFailed">0</span> Failed
+                        </div>
+                        <div class="progress-stat pending">
+                            <i class="fas fa-clock"></i>
+                            <span id="progressPending">0</span> Pending
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Failed Numbers List -->
+                <div class="failed-list" id="failedList" style="display: none;">
+                    <h4><i class="fas fa-exclamation-triangle"></i> Failed Numbers</h4>
+                    <div class="failed-numbers" id="failedNumbers"></div>
+                    <button class="btn btn-warning" id="retryFailedBtn">
+                        <i class="fas fa-redo"></i> Retry Failed Numbers
+                    </button>
+                </div>
+
+                <!-- Success Numbers List -->
+                <div class="success-list">
+                    <h4><i class="fas fa-check-circle"></i> Successfully Sent</h4>
+                    <div class="success-numbers" id="successNumbers"></div>
+                </div>
+
+                <!-- Control Buttons -->
+                <div class="progress-controls">
+                    <button class="btn btn-warning" id="pauseBtn">
+                        <i class="fas fa-pause"></i> Pause
+                    </button>
+                    <button class="btn btn-success" id="resumeBtn" style="display: none;">
+                        <i class="fas fa-play"></i> Resume
+                    </button>
+                    <button class="btn btn-danger" id="stopBtn">
+                        <i class="fas fa-stop"></i> Stop Campaign
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="/js/app.js"></script>
+    <script>
+        let validatedNumbers = [];
+        let currentCampaignId = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeDashboard();
+        });
+
+        function initializeDashboard() {
+            // Navigation
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    if (item.getAttribute('href') === '#') {
+                        e.preventDefault();
+                        const section = item.dataset.section;
+                        switchSection(section);
+                    }
+                });
+            });
+
+            // Horizontal tabs
+            document.querySelectorAll('.tab-h-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tab = btn.dataset.tabH;
+                    document.querySelectorAll('.tab-h-btn').forEach(b => b.classList.remove('active'));
+                    document.querySelectorAll('.tab-h-content').forEach(c => c.classList.remove('active'));
+                    btn.classList.add('active');
+                    document.getElementById(tab + '-tab-h').classList.add('active');
+                });
+            });
+
+            // Parse numbers
+            document.getElementById('parseNumbersBtn').addEventListener('click', parseNumbers);
+
+            // CSV upload
+            document.getElementById('csvFileInput').addEventListener('change', handleCSVUpload);
+
+            // Start campaign
+            document.getElementById('startCampaignBtn').addEventListener('click', startCampaign);
+
+            // Load dashboard data
+            loadDashboardData();
+            updateDailyStats();
+        }
+
+        function parseNumbers() {
+            const input = document.getElementById('phoneNumbersInput').value;
+            const numbers = input.split(/[
+,;]+/).map(n => n.trim()).filter(n => n);
+            
+            if (numbers.length === 0) {
+                showToast('Please enter at least one phone number', 'warning');
+                return;
+            }
+
+            validatedNumbers = numbers;
+            document.getElementById('recipientCount').textContent = numbers.length + ' contacts';
+            document.getElementById('validatedNumbers').style.display = 'block';
+            document.getElementById('validCount').textContent = numbers.length;
+            showToast(`${numbers.length} numbers validated successfully`, 'success');
+        }
+
+        async function handleCSVUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            document.getElementById('uploadedFile').style.display = 'block';
+            document.getElementById('fileName').textContent = file.name;
+            showToast('CSV file uploaded. Processing...', 'info');
+
+            // Parse CSV
+            const formData = new FormData();
+            formData.append('csv', file);
+
+            try {
+                const response = await fetch('/api/campaign/parse-csv', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    validatedNumbers = data.numbers;
+                    document.getElementById('recipientCount').textContent = data.numbers.length + ' contacts';
+                    document.getElementById('validatedNumbers').style.display = 'block';
+                    document.getElementById('validCount').textContent = data.numbers.length;
+                    showToast(`${data.numbers.length} numbers extracted from CSV`, 'success');
+                }
+            } catch (error) {
+                showToast('CSV parsing failed', 'error');
+            }
+        }
+
+        async function startCampaign() {
+            if (validatedNumbers.length === 0) {
+                showToast('Please add recipients first', 'warning');
+                return;
+            }
+
+            const campaignName = document.getElementById('campaignName').value || `Campaign ${Date.now()}`;
+            const message = document.getElementById('messageText').value;
+            const delay = parseInt(document.getElementById('delaySelect').value);
+
+            if (!message) {
+                showToast('Please enter a message', 'warning');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('name', campaignName);
+            formData.append('message', message);
+            formData.append('phoneNumbers', validatedNumbers.join(','));
+            formData.append('delay', delay);
+
+            const mediaFile = document.getElementById('mediaFile').files[0];
+            if (mediaFile) {
+                formData.append('media', mediaFile);
+            }
+
+            try {
+                showLoading('Creating campaign...');
+                
+                const response = await fetch('/api/campaign/create', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    currentCampaignId = data.campaignId;
+                    
+                    // Start the campaign
+                    const startResponse = await fetch(`/api/campaign/${currentCampaignId}/start`, {
+                        method: 'POST'
+                    });
+
+                    if (startResponse.ok) {
+                        showToast('Campaign started successfully!', 'success');
+                        openProgressModal(currentCampaignId);
+                    }
+                } else {
+                    showToast('Campaign creation failed', 'error');
+                }
+
+                hideLoading();
+            } catch (error) {
+                hideLoading();
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+
+        function openProgressModal(campaignId) {
+            document.getElementById('progressModal').style.display = 'flex';
+            currentCampaignId = campaignId;
+        }
+
+        function closeProgressModal() {
+            document.getElementById('progressModal').style.display = 'none';
+        }
+
+        function switchSection(section) {
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
+            
+            document.querySelector(`[data-section="${section}"]`).classList.add('active');
+            document.getElementById(section + '-section').classList.add('active');
+
+            const titles = {
+                campaign: 'Create New Campaign',
+                active: 'Active Campaigns',
+                history: 'Campaign History',
+                stats: 'Statistics & Analytics'
+            };
+
+            document.getElementById('sectionTitle').textContent = titles[section];
+        }
+
+        async function loadDashboardData() {
+            // Load campaigns and stats
+        }
+
+        async function updateDailyStats() {
+            try {
+                const response = await fetch('/api/stats/daily');
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('dailyCount').textContent = 
+                        `${data.data.messagesSentToday} / ${data.data.dailyLimit}`;
+                }
+            } catch (error) {
+                console.error('Failed to load daily stats');
+            }
+        }
+    </script>
+</body>
+</html>

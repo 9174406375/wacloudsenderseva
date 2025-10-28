@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Bulk Sender - Connect</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Notification Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <i class="fab fa-whatsapp"></i>
+                <h1>WhatsApp Bulk Sender</h1>
+            </div>
+            <div class="connection-status" id="connectionStatus">
+                <span class="status-dot disconnected"></span>
+                <span class="status-text">Disconnected</span>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Connection Card -->
+            <div class="card" id="connectionCard">
+                <div class="card-header">
+                    <h2><i class="fas fa-plug"></i> Connect WhatsApp</h2>
+                    <p>Choose your preferred connection method</p>
+                </div>
+
+                <div class="card-body">
+                    <!-- Connection Method Tabs -->
+                    <div class="tabs">
+                        <button class="tab-btn active" data-tab="qr">
+                            <i class="fas fa-qrcode"></i> QR Code
+                        </button>
+                        <button class="tab-btn" data-tab="pairing">
+                            <i class="fas fa-mobile-alt"></i> Pairing Code
+                        </button>
+                    </div>
+
+                    <!-- QR Code Tab -->
+                    <div class="tab-content active" id="qr-tab">
+                        <div class="qr-container">
+                            <div class="qr-placeholder" id="qrPlaceholder">
+                                <i class="fas fa-qrcode"></i>
+                                <p>Click button below to generate QR code</p>
+                            </div>
+                            <canvas id="qrCanvas" style="display: none;"></canvas>
+                        </div>
+                        <button class="btn btn-primary btn-block" id="connectQRBtn">
+                            <i class="fas fa-qrcode"></i> Generate QR Code
+                        </button>
+                        <div class="info-box">
+                            <i class="fas fa-info-circle"></i>
+                            <p>Open WhatsApp → Settings → Linked Devices → Link a Device → Scan QR Code</p>
+                        </div>
+                    </div>
+
+                    <!-- Pairing Code Tab -->
+                    <div class="tab-content" id="pairing-tab">
+                        <div class="form-group">
+                            <label for="phoneNumber">
+                                <i class="fas fa-phone"></i> Mobile Number (with country code)
+                            </label>
+                            <input type="tel" id="phoneNumber" class="form-control" placeholder="917400000000" maxlength="12">
+                            <small class="form-text">Example: 917440637596 (Country code + number)</small>
+                        </div>
+                        
+                        <button class="btn btn-primary btn-block" id="connectPairingBtn">
+                            <i class="fas fa-mobile-alt"></i> Get Pairing Code
+                        </button>
+
+                        <div class="pairing-code-display" id="pairingCodeDisplay" style="display: none;">
+                            <h3>Your Pairing Code:</h3>
+                            <div class="pairing-code" id="pairingCode">----</div>
+                            <p class="pairing-instructions">
+                                <i class="fas fa-arrow-right"></i> Open WhatsApp → Settings → Linked Devices → Link a Device → Link with phone number instead → Enter this code
+                            </p>
+                        </div>
+
+                        <div class="info-box">
+                            <i class="fas fa-info-circle"></i>
+                            <p>Enter your phone number to receive an 8-digit pairing code</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Connected State -->
+            <div class="card" id="connectedCard" style="display: none;">
+                <div class="card-header success">
+                    <h2><i class="fas fa-check-circle"></i> Connected Successfully!</h2>
+                    <p id="connectedInfo">Connected as: Loading...</p>
+                </div>
+
+                <div class="card-body">
+                    <div class="action-buttons">
+                        <a href="/dashboard" class="btn btn-success btn-lg">
+                            <i class="fas fa-tachometer-alt"></i> Go to Dashboard
+                        </a>
+                        <button class="btn btn-danger" id="logoutBtn">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+                <div class="spinner"></div>
+                <p id="loadingText">Connecting...</p>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <p class="loading-percent" id="loadingPercent">0%</p>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2025 WhatsApp Bulk Sender System | Made with <i class="fas fa-heart"></i></p>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="/js/app.js"></script>
+    <script>
+        // Initialize connection page
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeConnectionPage();
+        });
+
+        function initializeConnectionPage() {
+            // Tab switching
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tabName = btn.dataset.tab;
+                    
+                    // Remove active class from all tabs
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    // Add active class to selected tab
+                    btn.classList.add('active');
+                    document.getElementById(tabName + '-tab').classList.add('active');
+                });
+            });
+
+            // QR Code connection
+            document.getElementById('connectQRBtn').addEventListener('click', async () => {
+                try {
+                    showLoading('Generating QR Code...');
+                    
+                    const response = await fetch('/api/whatsapp/connect/qr', {
+                        method: 'POST'
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        showToast('QR Code generation started. Please wait...', 'info');
+                    } else {
+                        hideLoading();
+                        showToast(data.message || 'Failed to generate QR code', 'error');
+                    }
+                } catch (error) {
+                    hideLoading();
+                    showToast('Connection error: ' + error.message, 'error');
+                }
+            });
+
+            // Pairing Code connection
+            document.getElementById('connectPairingBtn').addEventListener('click', async () => {
+                const phoneNumber = document.getElementById('phoneNumber').value.trim();
+                
+                if (!phoneNumber) {
+                    showToast('Please enter your phone number', 'warning');
+                    return;
+                }
+
+                if (phoneNumber.length < 10) {
+                    showToast('Invalid phone number. Please include country code.', 'warning');
+                    return;
+                }
+
+                try {
+                    showLoading('Requesting pairing code...');
+                    
+                    const response = await fetch('/api/whatsapp/connect/pairing', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ phoneNumber })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        showToast('Pairing code requested. Please wait...', 'info');
+                    } else {
+                        hideLoading();
+                        showToast(data.message || 'Failed to get pairing code', 'error');
+                    }
+                } catch (error) {
+                    hideLoading();
+                    showToast('Connection error: ' + error.message, 'error');
+                }
+            });
+
+            // Logout button
+            document.getElementById('logoutBtn').addEventListener('click', async () => {
+                if (!confirm('Are you sure you want to logout?')) return;
+
+                try {
+                    showLoading('Logging out...');
+                    
+                    const response = await fetch('/api/whatsapp/logout', {
+                        method: 'POST'
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        showToast('Logged out successfully', 'success');
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        hideLoading();
+                        showToast('Logout failed', 'error');
+                    }
+                } catch (error) {
+                    hideLoading();
+                    showToast('Error: ' + error.message, 'error');
+                }
+            });
+
+            // Check initial status
+            checkWhatsAppStatus();
+        }
+
+        async function checkWhatsAppStatus() {
+            try {
+                const response = await fetch('/api/whatsapp/status');
+                const data = await response.json();
+                
+                if (data.success && data.data.isReady) {
+                    showConnectedState(data.data.clientInfo);
+                } else {
+                    updateConnectionStatus('disconnected', 'Disconnected');
+                }
+            } catch (error) {
+                console.error('Status check error:', error);
+            }
+        }
+
+        function showConnectedState(info) {
+            document.getElementById('connectionCard').style.display = 'none';
+            document.getElementById('connectedCard').style.display = 'block';
+            document.getElementById('connectedInfo').textContent = 
+                `Connected as: ${info.name} (+${info.number})`;
+            updateConnectionStatus('connected', 'Connected');
+            hideLoading();
+        }
+
+        function updateConnectionStatus(status, text) {
+            const statusDot = document.querySelector('.status-dot');
+            const statusText = document.querySelector('.status-text');
+            
+            statusDot.className = 'status-dot ' + status;
+            statusText.textContent = text;
+        }
+
+        function showLoading(text = 'Loading...') {
+            document.getElementById('loadingText').textContent = text;
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

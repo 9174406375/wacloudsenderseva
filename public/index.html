@@ -1,290 +1,928 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WhatsApp Bulk Sender - Connect</title>
-    <link rel="stylesheet" href="/css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<body>
-    <!-- Notification Toast Container -->
-    <div id="toast-container"></div>
-
-    <!-- Main Container -->
-    <div class="container">
-        <!-- Header -->
-        <header class="header">
-            <div class="logo">
-                <i class="fab fa-whatsapp"></i>
-                <h1>WhatsApp Bulk Sender</h1>
-            </div>
-            <div class="connection-status" id="connectionStatus">
-                <span class="status-dot disconnected"></span>
-                <span class="status-text">Disconnected</span>
-            </div>
-        </header>
-
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Connection Card -->
-            <div class="card" id="connectionCard">
-                <div class="card-header">
-                    <h2><i class="fas fa-plug"></i> Connect WhatsApp</h2>
-                    <p>Choose your preferred connection method</p>
-                </div>
-
-                <div class="card-body">
-                    <!-- Connection Method Tabs -->
-                    <div class="tabs">
-                        <button class="tab-btn active" data-tab="qr">
-                            <i class="fas fa-qrcode"></i> QR Code
-                        </button>
-                        <button class="tab-btn" data-tab="pairing">
-                            <i class="fas fa-mobile-alt"></i> Pairing Code
-                        </button>
-                    </div>
-
-                    <!-- QR Code Tab -->
-                    <div class="tab-content active" id="qr-tab">
-                        <div class="qr-container">
-                            <div class="qr-placeholder" id="qrPlaceholder">
-                                <i class="fas fa-qrcode"></i>
-                                <p>Click button below to generate QR code</p>
-                            </div>
-                            <canvas id="qrCanvas" style="display: none;"></canvas>
-                        </div>
-                        <button class="btn btn-primary btn-block" id="connectQRBtn">
-                            <i class="fas fa-qrcode"></i> Generate QR Code
-                        </button>
-                        <div class="info-box">
-                            <i class="fas fa-info-circle"></i>
-                            <p>Open WhatsApp → Settings → Linked Devices → Link a Device → Scan QR Code</p>
-                        </div>
-                    </div>
-
-                    <!-- Pairing Code Tab -->
-                    <div class="tab-content" id="pairing-tab">
-                        <div class="form-group">
-                            <label for="phoneNumber">
-                                <i class="fas fa-phone"></i> Mobile Number (with country code)
-                            </label>
-                            <input type="tel" id="phoneNumber" class="form-control" placeholder="917400000000" maxlength="12">
-                            <small class="form-text">Example: 917440637596 (Country code + number)</small>
-                        </div>
-                        
-                        <button class="btn btn-primary btn-block" id="connectPairingBtn">
-                            <i class="fas fa-mobile-alt"></i> Get Pairing Code
-                        </button>
-
-                        <div class="pairing-code-display" id="pairingCodeDisplay" style="display: none;">
-                            <h3>Your Pairing Code:</h3>
-                            <div class="pairing-code" id="pairingCode">----</div>
-                            <p class="pairing-instructions">
-                                <i class="fas fa-arrow-right"></i> Open WhatsApp → Settings → Linked Devices → Link a Device → Link with phone number instead → Enter this code
-                            </p>
-                        </div>
-
-                        <div class="info-box">
-                            <i class="fas fa-info-circle"></i>
-                            <p>Enter your phone number to receive an 8-digit pairing code</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Connected State -->
-            <div class="card" id="connectedCard" style="display: none;">
-                <div class="card-header success">
-                    <h2><i class="fas fa-check-circle"></i> Connected Successfully!</h2>
-                    <p id="connectedInfo">Connected as: Loading...</p>
-                </div>
-
-                <div class="card-body">
-                    <div class="action-buttons">
-                        <a href="/dashboard" class="btn btn-success btn-lg">
-                            <i class="fas fa-tachometer-alt"></i> Go to Dashboard
-                        </a>
-                        <button class="btn btn-danger" id="logoutBtn">
-                            <i class="fas fa-sign-out-alt"></i> Logout
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Loading State -->
-            <div class="loading-overlay" id="loadingOverlay" style="display: none;">
-                <div class="spinner"></div>
-                <p id="loadingText">Connecting...</p>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill"></div>
-                </div>
-                <p class="loading-percent" id="loadingPercent">0%</p>
-            </div>
-        </main>
-
-        <!-- Footer -->
-        <footer class="footer">
-            <p>&copy; 2025 WhatsApp Bulk Sender System | Made with <i class="fas fa-heart"></i></p>
-        </footer>
-    </div>
-
-    <!-- Scripts -->
-    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="/js/app.js"></script>
-    <script>
-        // Initialize connection page
-        document.addEventListener('DOMContentLoaded', () => {
-            initializeConnectionPage();
-        });
-
-        function initializeConnectionPage() {
-            // Tab switching
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const tabName = btn.dataset.tab;
-                    
-                    // Remove active class from all tabs
-                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                    
-                    // Add active class to selected tab
-                    btn.classList.add('active');
-                    document.getElementById(tabName + '-tab').classList.add('active');
-                });
-            });
-
-            // QR Code connection
-            document.getElementById('connectQRBtn').addEventListener('click', async () => {
-                try {
-                    showLoading('Generating QR Code...');
-                    
-                    const response = await fetch('/api/whatsapp/connect/qr', {
-                        method: 'POST'
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (data.success) {
-                        showToast('QR Code generation started. Please wait...', 'info');
-                    } else {
-                        hideLoading();
-                        showToast(data.message || 'Failed to generate QR code', 'error');
-                    }
-                } catch (error) {
-                    hideLoading();
-                    showToast('Connection error: ' + error.message, 'error');
-                }
-            });
-
-            // Pairing Code connection
-            document.getElementById('connectPairingBtn').addEventListener('click', async () => {
-                const phoneNumber = document.getElementById('phoneNumber').value.trim();
-                
-                if (!phoneNumber) {
-                    showToast('Please enter your phone number', 'warning');
-                    return;
-                }
-
-                if (phoneNumber.length < 10) {
-                    showToast('Invalid phone number. Please include country code.', 'warning');
-                    return;
-                }
-
-                try {
-                    showLoading('Requesting pairing code...');
-                    
-                    const response = await fetch('/api/whatsapp/connect/pairing', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ phoneNumber })
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (data.success) {
-                        showToast('Pairing code requested. Please wait...', 'info');
-                    } else {
-                        hideLoading();
-                        showToast(data.message || 'Failed to get pairing code', 'error');
-                    }
-                } catch (error) {
-                    hideLoading();
-                    showToast('Connection error: ' + error.message, 'error');
-                }
-            });
-
-            // Logout button
-            document.getElementById('logoutBtn').addEventListener('click', async () => {
-                if (!confirm('Are you sure you want to logout?')) return;
-
-                try {
-                    showLoading('Logging out...');
-                    
-                    const response = await fetch('/api/whatsapp/logout', {
-                        method: 'POST'
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (data.success) {
-                        showToast('Logged out successfully', 'success');
-                        setTimeout(() => location.reload(), 1500);
-                    } else {
-                        hideLoading();
-                        showToast('Logout failed', 'error');
-                    }
-                } catch (error) {
-                    hideLoading();
-                    showToast('Error: ' + error.message, 'error');
-                }
-            });
-
-            // Check initial status
-            checkWhatsAppStatus();
+    <title>WA Cloud Sender Seva - Login</title>
+    <meta name="description" content="Enterprise WhatsApp Bulk Messaging Platform with Book Order Management">
+    <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAA7EAAAOxAGVKw4bAAAA2ElEQVRYhe2WMQ6DMAxFf0RILGxMnIOew8XJHTZ2JiYkJHoOx/+ShqqJSYEBqU/KYNnWs+3Y8c8SER4kDw+SB4kInPODc34oiiJxzg+cc4OIQEQgIlBKQSkFIQQAQGsNrTWklJBSIkkSJEmCJEmQpimyLEOe58jzHGVZoq5r1HWNpmkwjuM4wdRaa63X+V/Xw44gCKCUWudCCEgpsdZCa71dg1JquwatNZRSEEJASgkpJaSU0FpDa41xHDGO42+OwDl/cc4P1traWlurqurhnB+stbW1tgYAFEWRWGvrLxq+lfxH8iZ5ATnJV/KLXsHsAAAAAElFTkSuQmCC">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        async function checkWhatsAppStatus() {
-            try {
-                const response = await fetch('/api/whatsapp/status');
-                const data = await response.json();
-                
-                if (data.success && data.data.isReady) {
-                    showConnectedState(data.data.clientInfo);
-                } else {
-                    updateConnectionStatus('disconnected', 'Disconnected');
-                }
-            } catch (error) {
-                console.error('Status check error:', error);
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated background particles */
+        body::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: drift 20s linear infinite;
+            z-index: 0;
+        }
+
+        @keyframes drift {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            max-width: 450px;
+            width: 100%;
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 30px;
+            text-align: center;
+            color: white;
+            position: relative;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+        }
+
+        .logo {
+            font-size: 48px;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            font-weight: 600;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.95;
+            font-weight: 300;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 18px;
+            text-align: center;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .tab.active {
+            color: #667eea;
+            background: white;
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .tab:hover:not(.active) {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .content {
+            padding: 35px 30px;
+        }
+
+        .form-section {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        .form-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
             }
         }
 
-        function showConnectedState(info) {
-            document.getElementById('connectionCard').style.display = 'none';
-            document.getElementById('connectedCard').style.display = 'block';
-            document.getElementById('connectedInfo').textContent = 
-                `Connected as: ${info.name} (+${info.number})`;
-            updateConnectionStatus('connected', 'Connected');
-            hideLoading();
+        .form-group {
+            margin-bottom: 20px;
         }
 
-        function updateConnectionStatus(status, text) {
-            const statusDot = document.querySelector('.status-dot');
-            const statusText = document.querySelector('.status-text');
-            
-            statusDot.className = 'status-dot ' + status;
-            statusText.textContent = text;
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
         }
 
-        function showLoading(text = 'Loading...') {
-            document.getElementById('loadingText').textContent = text;
-            document.getElementById('loadingOverlay').style.display = 'flex';
+        .required {
+            color: #e74c3c;
         }
 
-        function hideLoading() {
-            document.getElementById('loadingOverlay').style.display = 'none';
+        .input-wrapper {
+            position: relative;
         }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="email"],
+        input[type="tel"] {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        input.error {
+            border-color: #e74c3c;
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+            animation: slideDown 0.3s;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-5px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin-right: 10px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+
+        .checkbox-group label {
+            margin: 0;
+            font-weight: 400;
+            cursor: pointer;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .loader {
+            display: none;
+            margin: 0 auto;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+
+        .btn.loading .loader {
+            display: block;
+        }
+
+        .btn.loading .btn-text {
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 25px 0;
+            color: #999;
+            font-size: 14px;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #e0e0e0;
+        }
+
+        .divider::before {
+            margin-right: 15px;
+        }
+
+        .divider::after {
+            margin-left: 15px;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .info-box h3 {
+            color: #667eea;
+            font-size: 14px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .info-box p {
+            font-size: 13px;
+            color: #555;
+            line-height: 1.5;
+            margin: 3px 0;
+        }
+
+        .info-box strong {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #e0e0e0;
+            color: #666;
+            font-size: 13px;
+        }
+
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            display: none;
+            z-index: 9999;
+            min-width: 300px;
+            animation: slideInRight 0.4s;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast.show {
+            display: block;
+        }
+
+        .toast.success {
+            border-left: 4px solid #27ae60;
+        }
+
+        .toast.error {
+            border-left: 4px solid #e74c3c;
+        }
+
+        .toast.info {
+            border-left: 4px solid #3498db;
+        }
+
+        .toast-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .toast-icon {
+            font-size: 20px;
+            margin-right: 10px;
+        }
+
+        .toast-title {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .toast-message {
+            font-size: 13px;
+            color: #666;
+            padding-left: 30px;
+        }
+
+        .input-hint {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .container {
+                margin: 0;
+                border-radius: 0;
+            }
+
+            .header {
+                padding: 30px 20px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .content {
+                padding: 25px 20px;
+            }
+
+            .toast {
+                right: 10px;
+                left: 10px;
+                min-width: auto;
+            }
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: blink 2s infinite;
+        }
+
+        .status-indicator.online {
+            background: #27ae60;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .version {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255,255,255,0.2);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .features-list {
+            list-style: none;
+            margin-top: 10px;
+        }
+
+        .features-list li {
+            font-size: 12px;
+            padding: 5px 0;
+            color: #555;
+        }
+
+        .features-list li::before {
+            content: "✓ ";
+            color: #667eea;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <div class="toast-header">
+            <span class="toast-icon" id="toastIcon">✓</span>
+            <span class="toast-title" id="toastTitle">Success</span>
+        </div>
+        <div class="toast-message" id="toastMessage"></div>
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <span class="version">v2.0.0</span>
+            <div class="logo">📱💬</div>
+            <h1>WA Cloud Sender Seva</h1>
+            <p><span class="status-indicator online"></span>Enterprise WhatsApp Platform</p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('login')">🔐 Login</button>
+            <button class="tab" onclick="switchTab('signup')">📝 Signup</button>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <!-- Login Form -->
+            <div class="form-section active" id="loginForm">
+                <div class="info-box">
+                    <h3>🔑 Admin Credentials (For Testing)</h3>
+                    <p><strong>WhatsApp:</strong> 919174406375</p>
+                    <p><strong>Password:</strong> CloudSeva@2025</p>
+                    <p><strong>Activation Code:</strong> Satguru@5505</p>
+                </div>
+
+                <form onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label for="loginWhatsApp">WhatsApp Number <span class="required">*</span></label>
+                        <div class="input-wrapper">
+                            <input 
+                                type="tel" 
+                                id="loginWhatsApp" 
+                                placeholder="919174406375" 
+                                pattern="[0-9]{12}"
+                                required
+                            >
+                            <div class="input-hint">Format: 91XXXXXXXXXX (with country code)</div>
+                            <div class="error-message" id="loginWhatsAppError"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="loginPassword">Password <span class="required">*</span></label>
+                        <div class="input-wrapper">
+                            <input 
+                                type="password" 
+                                id="loginPassword" 
+                                placeholder="Enter your password"
+                                required
+                            >
+                            <div class="error-message" id="loginPasswordError"></div>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="rememberMe">
+                        <label for="rememberMe">Remember me for 7 days</label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="loginBtn">
+                        <span class="btn-text">🚀 Login to Dashboard</span>
+                        <div class="loader"></div>
+                    </button>
+                </form>
+
+                <div class="divider">OR</div>
+
+                <p style="text-align: center; color: #666; font-size: 14px;">
+                    Don't have an account? <a href="javascript:switchTab('signup')" style="color: #667eea; font-weight: 600;">Sign up now</a>
+                </p>
+            </div>
+
+            <!-- Signup Form -->
+            <div class="form-section" id="signupForm">
+                <div class="info-box">
+                    <h3>📋 Registration Process</h3>
+                    <ul class="features-list">
+                        <li>Fill the form with your details</li>
+                        <li>Admin will verify and activate your account</li>
+                        <li>You'll receive credentials via WhatsApp</li>
+                        <li>Login and start bulk messaging</li>
+                    </ul>
+                </div>
+
+                <form onsubmit="handleSignup(event)">
+                    <div class="form-group">
+                        <label for="signupName">Full Name <span class="required">*</span></label>
+                        <div class="input-wrapper">
+                            <input 
+                                type="text" 
+                                id="signupName" 
+                                placeholder="Enter your full name"
+                                required
+                                minlength="3"
+                            >
+                            <div class="error-message" id="signupNameError"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="signupWhatsApp">WhatsApp Number <span class="required">*</span></label>
+                        <div class="input-wrapper">
+                            <input 
+                                type="tel" 
+                                id="signupWhatsApp" 
+                                placeholder="919174406375"
+                                pattern="[0-9]{12}"
+                                required
+                            >
+                            <div class="input-hint">Format: 91XXXXXXXXXX (with country code)</div>
+                            <div class="error-message" id="signupWhatsAppError"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="signupEmail">Email Address <span class="required">*</span></label>
+                        <div class="input-wrapper">
+                            <input 
+                                type="email" 
+                                id="signupEmail" 
+                                placeholder="your.email@example.com"
+                                required
+                            >
+                            <div class="error-message" id="signupEmailError"></div>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="agreeTerms" required>
+                        <label for="agreeTerms">I agree to Terms & Conditions</label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="signupBtn">
+                        <span class="btn-text">✨ Create Account</span>
+                        <div class="loader"></div>
+                    </button>
+                </form>
+
+                <div class="divider">OR</div>
+
+                <p style="text-align: center; color: #666; font-size: 14px;">
+                    Already have an account? <a href="javascript:switchTab('login')" style="color: #667eea; font-weight: 600;">Login here</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>&copy; 2025 WA Cloud Sender Seva. All rights reserved.</p>
+            <p>Made with ❤️ by <a href="#">Sachin Bamniya</a></p>
+        </div>
+    </div>
+
+    <script>
+        // Tab Switching
+        function switchTab(tab) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Update forms
+            document.querySelectorAll('.form-section').forEach(f => f.classList.remove('active'));
+            if (tab === 'login') {
+                document.getElementById('loginForm').classList.add('active');
+            } else {
+                document.getElementById('signupForm').classList.add('active');
+            }
+        }
+
+        // Toast Notification
+        function showToast(type, title, message) {
+            const toast = document.getElementById('toast');
+            const toastIcon = document.getElementById('toastIcon');
+            const toastTitle = document.getElementById('toastTitle');
+            const toastMessage = document.getElementById('toastMessage');
+
+            // Set icon based on type
+            const icons = {
+                success: '✓',
+                error: '✗',
+                info: 'ℹ'
+            };
+
+            toastIcon.textContent = icons[type] || 'ℹ';
+            toastTitle.textContent = title;
+            toastMessage.textContent = message;
+
+            // Remove all type classes and add current type
+            toast.className = 'toast show ' + type;
+
+            // Auto hide after 4 seconds
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 4000);
+        }
+
+        // Form Validation
+        function validateWhatsApp(number) {
+            const pattern = /^[0-9]{12}$/;
+            return pattern.test(number);
+        }
+
+        function validateEmail(email) {
+            const pattern = /^[^s@]+@[^s@]+.[^s@]+$/;
+            return pattern.test(email);
+        }
+
+        // Handle Login
+        async function handleLogin(event) {
+            event.preventDefault();
+
+            const whatsapp = document.getElementById('loginWhatsApp').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const rememberMe = document.getElementById('rememberMe').checked;
+
+            // Validation
+            if (!validateWhatsApp(whatsapp)) {
+                showToast('error', 'Invalid Input', 'Please enter valid WhatsApp number with country code');
+                document.getElementById('loginWhatsApp').classList.add('error');
+                return;
+            }
+
+            // Show loading
+            const btn = document.getElementById('loginBtn');
+            btn.classList.add('loading');
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ whatsapp, password, rememberMe })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Save token
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+
+                    showToast('success', 'Login Successful', 'Redirecting to dashboard...');
+
+                    // Redirect based on role
+                    setTimeout(() => {
+                        if (data.user.role === 'admin') {
+                            window.location.href = '/admin.html';
+                        } else {
+                            window.location.href = '/dashboard.html';
+                        }
+                    }, 1000);
+                } else {
+                    showToast('error', 'Login Failed', data.error || 'Invalid credentials');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showToast('error', 'Error', 'Failed to connect to server. Please try again.');
+            } finally {
+                btn.classList.remove('loading');
+                btn.disabled = false;
+            }
+        }
+
+        // Handle Signup
+        async function handleSignup(event) {
+            event.preventDefault();
+
+            const name = document.getElementById('signupName').value.trim();
+            const whatsapp = document.getElementById('signupWhatsApp').value.trim();
+            const email = document.getElementById('signupEmail').value.trim();
+            const agreeTerms = document.getElementById('agreeTerms').checked;
+
+            // Validation
+            if (name.length < 3) {
+                showToast('error', 'Invalid Input', 'Name must be at least 3 characters');
+                return;
+            }
+
+            if (!validateWhatsApp(whatsapp)) {
+                showToast('error', 'Invalid Input', 'Please enter valid WhatsApp number with country code');
+                return;
+            }
+
+            if (!validateEmail(email)) {
+                showToast('error', 'Invalid Input', 'Please enter valid email address');
+                return;
+            }
+
+            if (!agreeTerms) {
+                showToast('error', 'Terms Required', 'Please agree to terms and conditions');
+                return;
+            }
+
+            // Show loading
+            const btn = document.getElementById('signupBtn');
+            btn.classList.add('loading');
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/api/auth/signup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name, whatsapp, email })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showToast('success', 'Registration Successful', 
+                        'Your account is pending approval. Admin will send credentials via WhatsApp.');
+                    
+                    // Clear form
+                    document.getElementById('signupName').value = '';
+                    document.getElementById('signupWhatsApp').value = '';
+                    document.getElementById('signupEmail').value = '';
+                    document.getElementById('agreeTerms').checked = false;
+
+                    // Switch to login tab after 3 seconds
+                    setTimeout(() => {
+                        switchTab('login');
+                    }, 3000);
+                } else {
+                    showToast('error', 'Registration Failed', data.error || 'Please try again');
+                }
+            } catch (error) {
+                console.error('Signup error:', error);
+                showToast('error', 'Error', 'Failed to connect to server. Please try again.');
+            } finally {
+                btn.classList.remove('loading');
+                btn.disabled = false;
+            }
+        }
+
+        // Remove error class on input
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', function() {
+                this.classList.remove('error');
+            });
+        });
+
+        // Check if already logged in
+        window.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+
+            if (token && user) {
+                const userData = JSON.parse(user);
+                // Redirect to appropriate dashboard
+                if (userData.role === 'admin') {
+                    window.location.href = '/admin.html';
+                } else {
+                    window.location.href = '/dashboard.html';
+                }
+            }
+        });
+
+        // Auto-format WhatsApp number
+        document.getElementById('loginWhatsApp').addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+
+        document.getElementById('signupWhatsApp').addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
     </script>
 </body>
 </html>

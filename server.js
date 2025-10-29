@@ -1,13 +1,7 @@
-/**
- * WA CLOUD SENDER SEVA - RENDER COMPATIBLE v7.1
- * Minimal working version for Render.com
- */
-
 const express = require('express');
 const http = require('http');
 const path = require('path');
 
-// PORT configuration (Render will set this)
 const PORT = process.env.PORT || 10000;
 const HOST = '0.0.0.0';
 
@@ -16,9 +10,13 @@ const server = http.createServer(app);
 
 // Middleware
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Health check (CRITICAL for Render)
+// Import routes
+const authRoutes = require('./routes/auth');
+
+// Health check
 app.get('/health', (req, res) => {
     res.status(200).json({
         status: 'healthy',
@@ -52,6 +50,7 @@ app.get('/', (req, res) => {
             background: rgba(255,255,255,0.1);
             border-radius: 20px;
             backdrop-filter: blur(10px);
+            max-width: 800px;
         }
         h1 { font-size: 48px; margin-bottom: 20px; }
         p { font-size: 20px; margin: 10px 0; }
@@ -62,32 +61,63 @@ app.get('/', (req, res) => {
             display: inline-block;
             margin: 20px 0;
         }
-        a {
+        .btn {
             color: white;
             text-decoration: none;
             background: #3b82f6;
             padding: 15px 30px;
             border-radius: 10px;
             display: inline-block;
-            margin-top: 20px;
+            margin: 10px;
+        }
+        .feature {
+            background: rgba(255,255,255,0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+        .feature-list li {
+            padding: 5px 0;
+        }
+        .feature-list li::before {
+            content: "✅ ";
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🚀 WA Cloud Sender Seva</h1>
-        <div class="status">✅ Server Running</div>
-        <p>Version: 7.1</p>
-        <p>Port: ${PORT}</p>
-        <p>Uptime: ${Math.floor(process.uptime())} seconds</p>
-        <a href="/health">Health Check</a>
+        <div class="status">✅ Server Running on Railway</div>
+        <p><strong>Version:</strong> 7.1</p>
+        <p><strong>Port:</strong> ${PORT}</p>
+        <p><strong>Uptime:</strong> ${Math.floor(process.uptime())} seconds</p>
+        
+        <div class="feature">
+            <h2>📋 Available Features:</h2>
+            <ul class="feature-list">
+                <li>WhatsApp Bulk Messaging</li>
+                <li>User Authentication</li>
+                <li>Campaign Management</li>
+                <li>Contact Management</li>
+                <li>Real-time Updates</li>
+                <li>Anti-Ban Protection</li>
+            </ul>
+        </div>
+        
+        <a href="/health" class="btn">Health Check</a>
+        <a href="/api" class="btn">API Info</a>
     </div>
 </body>
 </html>
     `);
 });
 
-// API routes will be added later
+// API info
 app.get('/api', (req, res) => {
     res.json({
         name: 'WA Cloud Sender Seva API',
@@ -95,21 +125,29 @@ app.get('/api', (req, res) => {
         status: 'running',
         port: PORT,
         endpoints: {
-            health: '/health',
-            api: '/api'
+            auth: {
+                register: 'POST /api/auth/register',
+                login: 'POST /api/auth/login'
+            },
+            health: 'GET /health',
+            api: 'GET /api'
         }
     });
 });
+
+// Mount routes
+app.use('/api/auth', authRoutes);
 
 // 404 handler
 app.use((req, res) => {
     res.status(404).json({
         success: false,
-        error: 'Route not found'
+        error: 'Route not found',
+        path: req.url
     });
 });
 
-// Start server - CRITICAL: Must bind to 0.0.0.0
+// Start server
 server.listen(PORT, HOST, () => {
     console.log('\n' + '='.repeat(70));
     console.log('🚀 WA CLOUD SENDER SEVA - Server Started!');
@@ -120,13 +158,9 @@ server.listen(PORT, HOST, () => {
     console.log('='.repeat(70) + '\n');
 });
 
-// Graceful shutdown
 process.on('SIGTERM', () => {
     console.log('SIGTERM received, closing server...');
-    server.close(() => {
-        console.log('Server closed');
-        process.exit(0);
-    });
+    server.close(() => process.exit(0));
 });
 
 module.exports = { app, server };

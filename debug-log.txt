@@ -1,0 +1,417 @@
+[dotenv@17.2.3] injecting env (9) from .env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
+Wed, 29 Oct 2025 03:54:21 GMT express:application set "x-powered-by" to true
+Wed, 29 Oct 2025 03:54:21 GMT express:application set "etag" to 'weak'
+Wed, 29 Oct 2025 03:54:21 GMT express:application set "etag fn" to [Function: generateETag]
+Wed, 29 Oct 2025 03:54:21 GMT express:application set "env" to 'production'
+Wed, 29 Oct 2025 03:54:21 GMT express:application set "query parser" to 'extended'
+Wed, 29 Oct 2025 03:54:21 GMT express:application set "query parser fn" to [Function: parseExtendedQueryString]
+Wed, 29 Oct 2025 03:54:21 GMT express:application set "subdomain offset" to 2
+Wed, 29 Oct 2025 03:54:21 GMT express:application set "trust proxy" to false
+Wed, 29 Oct 2025 03:54:21 GMT express:application set "trust proxy fn" to [Function: trustNone]
+Wed, 29 Oct 2025 03:54:21 GMT express:application booting in production mode
+Wed, 29 Oct 2025 03:54:21 GMT express:application set "view" to [Function: View]
+Wed, 29 Oct 2025 03:54:21 GMT express:application set "views" to '/data/data/com.termux/files/home/wacloudsenderseva/views'
+Wed, 29 Oct 2025 03:54:21 GMT express:application set "jsonp callback name" to 'callback'
+Wed, 29 Oct 2025 03:54:21 GMT express:application set "view cache" to true
+2025-10-29T03:54:21.613Z socket.io:server initializing namespace /
+2025-10-29T03:54:21.615Z socket.io:server creating engine.io instance with opts {"cors":{"origin":"*","methods":["GET","POST","PUT","DELETE"],"credentials":true},"pingTimeout":60000,"pingInterval":25000,"transports":["websocket","polling"],"cleanupEmptyChildNamespaces":false,"path":"/socket.io"}
+2025-10-29T03:54:21.624Z socket.io:server attaching client serving req handler
+Wed, 29 Oct 2025 03:54:21 GMT express:router use '/' query
+Wed, 29 Oct 2025 03:54:21 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:21 GMT express:router use '/' expressInit
+Wed, 29 Oct 2025 03:54:21 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:21 GMT express:router use '/' helmetMiddleware
+Wed, 29 Oct 2025 03:54:21 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:21 GMT express:router use '/' corsMiddleware
+Wed, 29 Oct 2025 03:54:21 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:21 GMT express:router use '/api/' <anonymous>
+Wed, 29 Oct 2025 03:54:21 GMT express:router:layer new '/api/'
+Wed, 29 Oct 2025 03:54:21 GMT express:router use '/api/auth/login' <anonymous>
+Wed, 29 Oct 2025 03:54:21 GMT express:router:layer new '/api/auth/login'
+Wed, 29 Oct 2025 03:54:21 GMT express:router use '/api/auth/register' <anonymous>
+Wed, 29 Oct 2025 03:54:21 GMT express:router:layer new '/api/auth/register'
+Wed, 29 Oct 2025 03:54:21 GMT express:router use '/' compression
+Wed, 29 Oct 2025 03:54:21 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:21 GMT express:router use '/' jsonParser
+Wed, 29 Oct 2025 03:54:21 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:21 GMT express:router use '/' urlencodedParser
+Wed, 29 Oct 2025 03:54:21 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:21 GMT express:router use '/' logger
+Wed, 29 Oct 2025 03:54:21 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:21 GMT express:router use '/' serveStatic
+Wed, 29 Oct 2025 03:54:21 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:21 GMT express:router use '/' <anonymous>
+Wed, 29 Oct 2025 03:54:21 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:21 GMT express:application set "io" to <ref *1> Server { _events: [Object: null prototype] {}, _eventsCount: 0, _maxListeners: undefined, _nsps: Map(1) { '/' => Namespace { _events: [Object: null prototype], _eventsCount: 1, _maxListeners: undefined, sockets: Map(0) {}, _preConnectSockets: Map(0) {}, _fns: [], _ids: 0, server: [Circular *1], name: '/', adapter: [Adapter], Symbol(shapeMode): false, Symbol(kCapture): false } }, parentNsps: Map(0) {}, parentNamespacesFromRegExp: Map(0) {}, _path: '/socket.io', clientPathRegex: /^\/socket\.io\/socket\.io(\.msgpack|\.esm)?(\.min)?\.js(\.map)?(?:\?|$)/, _connectTimeout: 45000, _serveClient: true, _parser: { protocol: 5, PacketType: { '0': 'CONNECT', '1': 'DISCONNECT', '2': 'EVENT', '3': 'ACK', '4': 'CONNECT_ERROR', '5': 'BINARY_EVENT', '6': 'BINARY_ACK', CONNECT: 0, DISCONNECT: 1, EVENT: 2, ACK: 3, CONNECT_ERROR: 4, BINARY_EVENT: 5, BINARY_ACK: 6 }, Encoder: [class Encoder], Decoder: [class Decoder extends Emitter] }, encoder: Encoder { replacer: undefined }, opts: { cors: { origin: '*', methods: [Array], credentials: true }, pingTimeout: 60000, pingInterval: 25000, transports: [ 'websocket', 'polling' ], cleanupEmptyChildNamespaces: false }, _adapter: [class Adapter extends EventEmitter], sockets: <ref *2> Namespace { _events: [Object: null prototype] { connection: [Function (anonymous)] }, _eventsCount: 1, _maxListeners: undefined, sockets: Map(0) {}, _preConnectSockets: Map(0) {}, _fns: [], _ids: 0, server: [Circular *1], name: '/', adapter: Adapter { _events: [Object: null prototype] {}, _eventsCount: 0, _maxListeners: undefined, nsp: [Circular *2], rooms: Map(0) {}, sids: Map(0) {}, encoder: [Encoder], Symbol(shapeMode): false, Symbol(kCapture): false }, Symbol(shapeMode): false, Symbol(kCapture): false }, eio: Server { _events: [Object: null prototype] { connection: [Function: bound onconnection] }, _eventsCount: 1, _maxListeners: undefined, middlewares: [ [Function: corsMiddleware] ], clients: {}, clientsCount: 0, opts: { wsEngine: [class WebSocketServer extends EventEmitter], pingTimeout: 60000, pingInterval: 25000, upgradeTimeout: 10000, maxHttpBufferSize: 1000000, transports: [Array], allowUpgrades: true, httpCompression: [Object], cors: [Object], allowEIO3: false, cleanupEmptyChildNamespaces: false, path: '/socket.io' }, ws: WebSocketServer { _events: [Object: null prototype], _eventsCount: 1, _maxListeners: undefined, options: [Object], _state: 0, Symbol(shapeMode): false, Symbol(kCapture): false }, Symbol(shapeMode): false, Symbol(kCapture): false }, httpServer: Server { maxHeaderSize: undefined, insecureHTTPParser: undefined, requestTimeout: 300000, headersTimeout: 60000, keepAliveTimeout: 5000, keepAliveTimeoutBuffer: 1000, connectionsCheckingInterval: 30000, requireHostHeader: true, joinDuplicateHeaders: undefined, rejectNonStandardBodyWrites: false, shouldUpgradeCallback: [Function (anonymous)], _events: [Object: null prototype] { connection: [Function: connectionListener], listening: [Array], close: [Function: bound close], upgrade: [Function (anonymous)], request: [Function (anonymous)] }, _eventsCount: 5, _maxListeners: undefined, _connections: 0, _handle: null, _usingWorkers: false, _workers: [], _unref: false, _listeningId: 1, allowHalfOpen: true, pauseOnConnect: false, noDelay: true, keepAlive: false, keepAliveInitialDelay: 0, highWaterMark: 65536, httpAllowHalfOpen: false, timeout: 0, maxHeadersCount: null, maxRequestsPerSocket: 0, Symbol(IncomingMessage): [Function: IncomingMessage], Symbol(ServerResponse): [Function: ServerResponse], Symbol(shapeMode): false, Symbol(kCapture): false, Symbol(async_id_symbol): -1, Symbol(kUniqueHeaders): null }, engine: Server { _events: [Object: null prototype] { connection: [Function: bound onconnection] }, _eventsCount: 1, _maxListeners: undefined, middlewares: [ [Function: corsMiddleware] ], clients: {}, clientsCount: 0, opts: { wsEngine: [class WebSocketServer extends EventEmitter], pingTimeout: 60000, pingInterval: 25000, upgradeTimeout: 10000, maxHttpBufferSize: 1000000, transports: [Array], allowUpgrades: true, httpCompression: [Object], cors: [Object], allowEIO3: false, cleanupEmptyChildNamespaces: false, path: '/socket.io' }, ws: WebSocketServer { _events: [Object: null prototype], _eventsCount: 1, _maxListeners: undefined, options: [Object], _state: 0, Symbol(shapeMode): false, Symbol(kCapture): false }, Symbol(shapeMode): false, Symbol(kCapture): false }, _corsMiddleware: [Function: corsMiddleware], Symbol(shapeMode): false, Symbol(kCapture): false }
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route new '/register'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/register'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route post '/register'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route new '/login'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/login'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route post '/login'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route new '/me'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/me'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route get '/me'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route get '/me'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route new '/profile'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/profile'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route put '/profile'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route put '/profile'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route new '/change-password'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/change-password'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route put '/change-password'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route put '/change-password'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route new '/logout'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/logout'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route post '/logout'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route post '/logout'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route new '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route get '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route get '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route new '/:id'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/:id'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route get '/:id'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route get '/:id'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route new '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route post '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route post '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route post '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route new '/:id'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/:id'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route put '/:id'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route put '/:id'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route new '/:id'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/:id'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route delete '/:id'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route delete '/:id'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route new '/:id/start'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/:id/start'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route post '/:id/start'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route post '/:id/start'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route new '/:id/pause'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/:id/pause'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route post '/:id/pause'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route post '/:id/pause'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route new '/:id/resume'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/:id/resume'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route post '/:id/resume'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route post '/:id/resume'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route new '/:id/cancel'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/:id/cancel'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route post '/:id/cancel'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route post '/:id/cancel'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route new '/:id/stats'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/:id/stats'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route get '/:id/stats'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route get '/:id/stats'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route new '/:id/duplicate'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/:id/duplicate'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route post '/:id/duplicate'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route post '/:id/duplicate'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route new '/:id/errors'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/:id/errors'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route get '/:id/errors'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:route get '/:id/errors'
+Wed, 29 Oct 2025 03:54:22 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route get '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route get '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route new '/:id'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/:id'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route get '/:id'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route get '/:id'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route post '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route post '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route post '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route new '/:id'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/:id'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route put '/:id'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route put '/:id'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route new '/:id'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/:id'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route delete '/:id'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route delete '/:id'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route new '/bulk/delete'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/bulk/delete'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route post '/bulk/delete'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route post '/bulk/delete'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route new '/bulk/update'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/bulk/update'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route post '/bulk/update'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route post '/bulk/update'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route new '/import'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/import'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route post '/import'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route post '/import'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route post '/import'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route post '/import'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route new '/export/excel'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/export/excel'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route get '/export/excel'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route get '/export/excel'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route new '/analytics/overview'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/analytics/overview'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route get '/analytics/overview'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route get '/analytics/overview'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route get '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route get '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route new '/:id'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/:id'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route get '/:id'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route get '/:id'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route post '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route post '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route post '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route new '/:id'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/:id'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route put '/:id'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route put '/:id'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route new '/:id'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/:id'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route delete '/:id'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route delete '/:id'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route new '/:id/contacts'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/:id/contacts'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route post '/:id/contacts'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route post '/:id/contacts'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route new '/:id/contacts'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/:id/contacts'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route delete '/:id/contacts'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route delete '/:id/contacts'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route new '/merge'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/merge'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route post '/merge'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route post '/merge'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route new '/sessions'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/sessions'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route get '/sessions'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route get '/sessions'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route new '/sessions'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/sessions'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route post '/sessions'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route post '/sessions'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route post '/sessions'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route new '/sessions/:sessionId'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/sessions/:sessionId'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route get '/sessions/:sessionId'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route get '/sessions/:sessionId'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route new '/sessions/:sessionId'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/sessions/:sessionId'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route put '/sessions/:sessionId'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route put '/sessions/:sessionId'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route new '/sessions/:sessionId'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/sessions/:sessionId'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route delete '/sessions/:sessionId'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route delete '/sessions/:sessionId'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route new '/sessions/:sessionId/refresh-qr'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/sessions/:sessionId/refresh-qr'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route post '/sessions/:sessionId/refresh-qr'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route post '/sessions/:sessionId/refresh-qr'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route new '/check-number'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/check-number'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route post '/check-number'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route post '/check-number'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route new '/bulk-check'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/bulk-check'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route post '/bulk-check'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route post '/bulk-check'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route new '/health'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/health'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route get '/health'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route new '/api'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/api'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route get '/api'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router use '/api/auth' router
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/api/auth'
+Wed, 29 Oct 2025 03:54:23 GMT express:router use '/api/campaigns' router
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/api/campaigns'
+Wed, 29 Oct 2025 03:54:23 GMT express:router use '/api/contacts' router
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/api/contacts'
+Wed, 29 Oct 2025 03:54:23 GMT express:router use '/api/lists' router
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/api/lists'
+Wed, 29 Oct 2025 03:54:23 GMT express:router use '/api/whatsapp' router
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/api/whatsapp'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route get '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route new '/dashboard'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/dashboard'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:route get '/dashboard'
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router use '/' <anonymous>
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+Wed, 29 Oct 2025 03:54:23 GMT express:router use '/' <anonymous>
+Wed, 29 Oct 2025 03:54:23 GMT express:router:layer new '/'
+(node:13158) [MONGOOSE] Warning: Duplicate schema index on {"email":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+══════════════════════════════════════════════════════════════════════
+🚀 WA CLOUD SENDER SEVA - PRODUCTION SERVER v3.0
+══════════════════════════════════════════════════════════════════════
+📡 Server running on port: 3000
+🌐 Environment: production
+🔗 Local URL: http://localhost:3000
+📊 Health Check: http://localhost:3000/health
+📚 API Docs: http://localhost:3000/api
+🔌 Socket.IO: Active
+📦 MongoDB: Connecting...
+══════════════════════════════════════════════════════════════════════
+
+✨ All routes registered:
+   • /api/auth         - Authentication
+   • /api/campaigns    - Campaign Management
+   • /api/contacts     - Contact Management
+   • /api/lists        - Contact Lists
+   • /api/whatsapp     - WhatsApp Sessions
+
+📱 Ready to accept connections!
+
+📊 Mongoose connected to MongoDB
+✅ MongoDB connected successfully
+Wed, 29 Oct 2025 03:54:46 GMT express:router dispatching GET /
+Wed, 29 Oct 2025 03:54:46 GMT express:router query  : /
+Wed, 29 Oct 2025 03:54:46 GMT express:router expressInit  : /
+Wed, 29 Oct 2025 03:54:46 GMT express:router helmetMiddleware  : /
+Wed, 29 Oct 2025 03:54:46 GMT express:router corsMiddleware  : /
+Wed, 29 Oct 2025 03:54:46 GMT express:router compression  : /
+Wed, 29 Oct 2025 03:54:46 GMT express:router jsonParser  : /
+Wed, 29 Oct 2025 03:54:46 GMT body-parser:json skip empty body
+Wed, 29 Oct 2025 03:54:46 GMT express:router urlencodedParser  : /
+Wed, 29 Oct 2025 03:54:46 GMT body-parser:urlencoded skip empty body
+Wed, 29 Oct 2025 03:54:46 GMT express:router logger  : /
+Wed, 29 Oct 2025 03:54:46 GMT express:router serveStatic  : /
+Wed, 29 Oct 2025 03:54:46 GMT send stat "/data/data/com.termux/files/home/wacloudsenderseva/public/index.html"
+Wed, 29 Oct 2025 03:54:46 GMT express:router <anonymous>  : /
+Wed, 29 Oct 2025 03:54:46 GMT send stat "/data/data/com.termux/files/home/wacloudsenderseva/public/index.html"
+Wed, 29 Oct 2025 03:54:46 GMT express:router <anonymous>  : /
+Wed, 29 Oct 2025 03:54:46 GMT express:router <anonymous>  : /
+Server error: {
+  message: "ENOENT: no such file or directory, stat '/data/data/com.termux/files/home/wacloudsenderseva/public/index.html'",
+  stack: undefined,
+  requestId: 'mhbgp6pn4t6z10k66v2'
+}
+Wed, 29 Oct 2025 03:54:46 GMT compression no compression: size below threshold
+Wed, 29 Oct 2025 03:54:46 GMT morgan log request
+127.0.0.1 - - [29/Oct/2025:03:54:46 +0000] "GET / HTTP/1.1" 404 100 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Wed, 29 Oct 2025 03:54:53 GMT express:router dispatching GET /api
+Wed, 29 Oct 2025 03:54:53 GMT express:router query  : /api
+Wed, 29 Oct 2025 03:54:53 GMT express:router expressInit  : /api
+Wed, 29 Oct 2025 03:54:53 GMT express:router helmetMiddleware  : /api
+Wed, 29 Oct 2025 03:54:53 GMT express:router corsMiddleware  : /api
+Wed, 29 Oct 2025 03:54:53 GMT express:router trim prefix (/api) from url /api
+Wed, 29 Oct 2025 03:54:53 GMT express:router <anonymous> /api : /api
+Wed, 29 Oct 2025 03:54:53 GMT express:router compression  : /api
+Wed, 29 Oct 2025 03:54:53 GMT express:router jsonParser  : /api
+Wed, 29 Oct 2025 03:54:53 GMT body-parser:json skip empty body
+Wed, 29 Oct 2025 03:54:53 GMT express:router urlencodedParser  : /api
+Wed, 29 Oct 2025 03:54:53 GMT body-parser:urlencoded skip empty body
+Wed, 29 Oct 2025 03:54:53 GMT express:router logger  : /api
+Wed, 29 Oct 2025 03:54:53 GMT express:router serveStatic  : /api
+Wed, 29 Oct 2025 03:54:53 GMT send stat "/data/data/com.termux/files/home/wacloudsenderseva/public/api"
+Wed, 29 Oct 2025 03:54:53 GMT express:router <anonymous>  : /api
+Wed, 29 Oct 2025 03:54:53 GMT compression no compression: size below threshold
+Wed, 29 Oct 2025 03:54:53 GMT morgan log request
+127.0.0.1 - - [29/Oct/2025:03:54:53 +0000] "GET /api HTTP/1.1" 200 555 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"

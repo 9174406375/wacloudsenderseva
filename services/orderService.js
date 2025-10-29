@@ -1,144 +1,141 @@
-/**
- * ═══════════════════════════════════════════════════════════════
- * ORDER MANAGEMENT SERVICE - From Yesterday's Work
- * Auto-reply orders, admin pairing notification
- * ═══════════════════════════════════════════════════════════════
- */
-
 const Order = require('../models/Order');
+const whatsappService = require('./whatsappService');
+const moment = require('moment-timezone');
 
-// Order status colors
-const STATUS_COLORS = {
-    pending: 'yellow',
-    confirmed: 'green',
-    cancelled: 'red',
-    delivered: 'blue'
-};
+class OrderService {
+    // Create new order
+    async createOrder(orderData) {
+        try {
+            const order = new Order(orderData);
+            await order.save();
 
-/**
- * Create new order from WhatsApp message
- */
-async function createOrder(userId, customerPhone, customerName, orderDetails) {
-    try {
-        const order = await Order.create({
-            user: userId,
-            customerPhone,
-            customerName,
-            orderDetails,
-            status: 'pending',
-            source: 'whatsapp'
-        });
+            // Send WhatsApp confirmation
+            await this.sendOrderConfirmation(order);
 
-        // Auto-reply to customer
-        const replyMessage = `
-✅ *Order Received!*
-
-📋 Order ID: ${order._id}
-👤 Customer: ${customerName}
-📱 Phone: ${customerPhone}
-
-📦 Order Details:
-${orderDetails}
-
-⏰ Time: ${new Date().toLocaleTimeString('en-IN')}
-
-We'll confirm your order shortly.
-
-Thank you for ordering! 🙏
-        `.trim();
-
-        return {
-            success: true,
-            order,
-            replyMessage
-        };
-
-    } catch (error) {
-        return {
-            success: false,
-            error: error.message
-        };
-    }
-}
-
-/**
- * Get order status with color
- */
-async function getOrderStatus(orderId) {
-    try {
-        const order = await Order.findById(orderId);
-        
-        if (!order) {
-            return { success: false, error: 'Order not found' };
+            return { success: true, order };
+        } catch (error) {
+            console.error('Create order error:', error);
+            return { success: false, error: error.message };
         }
-
-        return {
-            success: true,
-            order,
-            color: STATUS_COLORS[order.status] || 'gray'
-        };
-
-    } catch (error) {
-        return { success: false, error: error.message };
     }
-}
 
-/**
- * Update order status
- */
-async function updateOrderStatus(orderId, newStatus, io) {
-    try {
-        const order = await Order.findByIdAndUpdate(
-            orderId,
-            { status: newStatus, updatedAt: Date.now() },
-            { new: true }
+    // Send order confirmation message
+    async sendOrderConfirmation(order) {
+        const message = `
+🙏 *जय गुरुदेव जी!*
+
+आपका ऑर्डर सफलतापूर्वक रजिस्टर हो गया है।
+
+📋 *Order Details:*
+Order No: ${order.orderNumber}
+Book: ${order.books.map(b => b.bookName).join(', ')}
+Quantity: ${order.books.reduce((sum, b) => sum + b.quantity, 0)}
+Language: ${order.books[0]?.language || 'Hindi'}
+
+📍 *Delivery Address:*
+${order.customer.name}
+${order.deliveryAddress.addressLine1}
+${order.deliveryAddress.addressLine2 || ''}
+${order.deliveryAddress.city}, ${order.deliveryAddress.state}
+PIN: ${order.deliveryAddress.pincode}
+
+📱 Contact: ${order.customer.phone}
+
+✅ आपकी पुस्तक जल्द ही आपके पते पर भेज दी जाएगी।
+
+धन्यवाद! 🙏
+Sant Rampal Ji Maharaj`;
+
+        return await whatsappService.sendMessage(
+            order.customer.phone,
+            message.trim()
         );
-
-        // Emit real-time update
-        if (io) {
-            io.to(`user_${order.user}`).emit('order:updated', {
-                orderId: order._id,
-                status: newStatus,
-                color: STATUS_COLORS[newStatus],
-                timestamp: Date.now()
-            });
-        }
-
-        return { success: true, order };
-
-    } catch (error) {
-        return { success: false, error: error.message };
     }
-}
 
-/**
- * Get all user orders
- */
-async function getUserOrders(userId, filters = {}) {
-    try {
-        const query = { user: userId };
-        
-        if (filters.status) query.status = filters.status;
-        if (filters.customerPhone) query.customerPhone = filters.customerPhone;
+    // Update order status
+    async updateOrderStatus(orderId, status, notes = '') {
+        try {
+            const order = await Order.findById(orderId);
+            if (!order) {
+                return { success: false, error: 'Order not found' };
+            }
 
-        const orders = await Order.find(query)
-            .sort({ createdAt: -1 })
-            .limit(100);
+            order.status = status;
+            
+            // Update timestamps
+            if (status === 'confirmed') order.confirmedAt = new Date();
+            if (status === 'shipped') order.shippedAt = new Date();
+            if (status === 'delivered') order.deliveredAt = new Date();
+            if (status === 'cancelled') order.cancelledAt = new Date();
 
-        return {
-            success: true,
-            orders,
-            count: orders.length
+            if (notes) {
+                order.notes.admin = notes;
+            }
+
+            await order.save();
+
+            // Send status update to customer
+            await this.sendStatusUpdate(order);
+
+            return { success: true, order };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    }
+
+    // Send order status update
+    async sendStatusUpdate(order) {
+        const statusMessages = {
+            confirmed: `✅ आपका ऑर्डर *${order.orderNumber}* कन्फर्म हो गया है। जल्द ही आपकी पुस्तक भेजी जाएगी।`,
+            processing: `📦 आपका ऑर्डर *${order.orderNumber}* प्रोसेस हो रहा है।`,
+            shipped: `🚚 आपकी पुस्तक भेज दी गई है!\n\nTracking: ${order.shipping.trackingNumber || 'N/A'}\nEstimated Delivery: ${moment(order.shipping.estimatedDelivery).format('DD MMM YYYY')}`,
+            delivered: `✅ आपकी पुस्तक डिलीवर हो गई है। आशा है आपको पुस्तक पसंद आएगी। 🙏`,
+            cancelled: `❌ आपका ऑर्डर *${order.orderNumber}* कैंसल कर दिया गया है।\nकारण: ${order.notes.admin || 'Not specified'}`
         };
 
-    } catch (error) {
-        return { success: false, error: error.message };
+        const message = `
+🙏 *Order Update*
+
+${statusMessages[order.status]}
+
+Order No: ${order.orderNumber}
+Customer: ${order.customer.name}
+
+धन्यवाद!
+Sant Rampal Ji Maharaj`;
+
+        return await whatsappService.sendMessage(
+            order.customer.phone,
+            message.trim()
+        );
+    }
+
+    // Get orders by pincode
+    async getOrdersByPincode(pincode) {
+        return await Order.find({ 'deliveryAddress.pincode': pincode })
+            .sort('-orderedAt')
+            .populate('userId', 'name email');
+    }
+
+    // Get order statistics
+    async getOrderStats(userId = null) {
+        const query = userId ? { userId } : {};
+        
+        const stats = await Order.aggregate([
+            { $match: query },
+            {
+                $group: {
+                    _id: '$status',
+                    count: { $sum: 1 }
+                }
+            }
+        ]);
+
+        return stats.reduce((acc, stat) => {
+            acc[stat._id] = stat.count;
+            return acc;
+        }, {});
     }
 }
 
-module.exports = {
-    createOrder,
-    getOrderStatus,
-    updateOrderStatus,
-    getUserOrders
-};
+module.exports = new OrderService();

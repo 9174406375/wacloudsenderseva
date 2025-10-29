@@ -1,91 +1,177 @@
-/**
- * ═══════════════════════════════════════════════════════════════
- * ORDER ROUTES - Order Management API
- * ═══════════════════════════════════════════════════════════════
- */
-
 const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/auth');
-const orderService = require('../services/orderService');
 const Order = require('../models/Order');
+const orderService = require('../services/orderService');
 
-router.use(protect);
-
-/**
- * GET /api/orders - Get all orders
- */
-router.get('/', async (req, res) => {
+// @route   POST /api/orders
+// @desc    Create new order
+// @access  Private
+router.post('/', protect, async (req, res) => {
     try {
-        const { status, customerPhone } = req.query;
-        const filters = {};
+        const orderData = {
+            ...req.body,
+            userId: req.user.id
+        };
+
+        const result = await orderService.createOrder(orderData);
         
-        if (status) filters.status = status;
-        if (customerPhone) filters.customerPhone = customerPhone;
-
-        const result = await orderService.getUserOrders(req.user._id, filters);
-        res.json(result);
-
-    } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
-    }
-});
-
-/**
- * POST /api/orders - Create new order
- */
-router.post('/', async (req, res) => {
-    try {
-        const { customerPhone, customerName, orderDetails, amount } = req.body;
-
-        const result = await orderService.createOrder(
-            req.user._id,
-            customerPhone,
-            customerName,
-            orderDetails
-        );
-
-        if (result.success) {
-            res.status(201).json(result);
-        } else {
-            res.status(400).json(result);
+        if (!result.success) {
+            return res.status(400).json(result);
         }
 
+        // Update user stats
+        req.user.stats.totalOrders++;
+        await req.user.save();
+
+        res.status(201).json(result);
+
     } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
+        console.error('Create order error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: error.message 
+        });
     }
 });
 
-/**
- * PUT /api/orders/:id/status - Update order status
- */
-router.put('/:id/status', async (req, res) => {
+// @route   GET /api/orders
+// @desc    Get all orders for user
+// @access  Private
+router.get('/', protect, async (req, res) => {
     try {
-        const { status } = req.body;
-        const io = req.app.get('io');
+        const { status, pincode, startDate, endDate, page = 1, limit = 20 } = req.query;
+        
+        const query = { userId: req.user.id };
+        
+        if (status) query.status = status;
+        if (pincode) query['deliveryAddress.pincode'] = pincode;
+        if (startDate && endDate) {
+            query.orderedAt = {
+                $gte: new Date(startDate),
+                $lte: new Date(endDate)
+            };
+        }
 
-        const result = await orderService.updateOrderStatus(req.params.id, status, io);
+        const orders = await Order.find(query)
+            .sort('-orderedAt')
+            .limit(limit * 1)
+            .skip((page - 1) * limit);
+
+        const total = await Order.countDocuments(query);
+
+        res.json({
+            success: true,
+            data: orders,
+            pagination: {
+                total,
+                page: parseInt(page),
+                pages: Math.ceil(total / limit)
+            }
+        });
+
+    } catch (error) {
+        res.status(500).json({ 
+            success: false, 
+            error: error.message 
+        });
+    }
+});
+
+// @route   GET /api/orders/:id
+// @desc    Get single order
+// @access  Private
+router.get('/:id', protect, async (req, res) => {
+    try {
+        const order = await Order.findOne({
+            _id: req.params.id,
+            userId: req.user.id
+        });
+
+        if (!order) {
+            return res.status(404).json({ 
+                success: false, 
+                error: 'Order not found' 
+            });
+        }
+
+        res.json({
+            success: true,
+            data: order
+        });
+
+    } catch (error) {
+        res.status(500).json({ 
+            success: false, 
+            error: error.message 
+        });
+    }
+});
+
+// @route   PUT /api/orders/:id/status
+// @desc    Update order status
+// @access  Private
+router.put('/:id/status', protect, async (req, res) => {
+    try {
+        const { status, notes } = req.body;
+
+        const result = await orderService.updateOrderStatus(
+            req.params.id,
+            status,
+            notes
+        );
+
+        if (!result.success) {
+            return res.status(400).json(result);
+        }
+
         res.json(result);
 
     } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
+        res.status(500).json({ 
+            success: false, 
+            error: error.message 
+        });
     }
 });
 
-/**
- * DELETE /api/orders/:id - Delete order
- */
-router.delete('/:id', async (req, res) => {
+// @route   GET /api/orders/stats
+// @desc    Get order statistics
+// @access  Private
+router.get('/analytics/stats', protect, async (req, res) => {
     try {
-        await Order.findOneAndDelete({
-            _id: req.params.id,
-            user: req.user._id
+        const stats = await orderService.getOrderStats(req.user.id);
+
+        res.json({
+            success: true,
+            data: stats
         });
 
-        res.json({ success: true, message: 'Order deleted' });
+    } catch (error) {
+        res.status(500).json({ 
+            success: false, 
+            error: error.message 
+        });
+    }
+});
+
+// @route   GET /api/orders/pincode/:pincode
+// @desc    Get orders by pincode
+// @access  Private
+router.get('/pincode/:pincode', protect, async (req, res) => {
+    try {
+        const orders = await orderService.getOrdersByPincode(req.params.pincode);
+
+        res.json({
+            success: true,
+            data: orders
+        });
 
     } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
+        res.status(500).json({ 
+            success: false, 
+            error: error.message 
+        });
     }
 });
 

@@ -1,105 +1,125 @@
-/**
- * ═══════════════════════════════════════════════════════════════
- * WHATSAPP ROUTES - Complete WhatsApp Integration
- * ═══════════════════════════════════════════════════════════════
- */
-
 const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/auth');
 const whatsappService = require('../services/whatsappService');
+const QRCode = require('qrcode');
 
-router.use(protect);
-
-/**
- * POST /api/whatsapp/connect - Initialize WhatsApp connection
- */
-router.post('/connect', async (req, res) => {
+// @route   POST /api/whatsapp/connect
+// @desc    Connect WhatsApp (QR or Pairing Code)
+// @access  Private
+router.post('/connect', protect, async (req, res) => {
     try {
-        const userId = req.user._id;
-        const sessionId = req.body.sessionId || 'default';
-        const io = req.app.get('io');
+        const { phoneNumber } = req.body;
+        
+        const result = await whatsappService.connect(
+            req.user.id.toString(),
+            phoneNumber
+        );
 
-        const result = await whatsappService.initializeClient(userId, sessionId, {
-            io,
-            User: require('../models/User')
-        });
-
-        res.json(result);
+        if (result.type === 'qr_code' && result.qr) {
+            // Generate QR code as base64 image
+            const qrImage = await QRCode.toDataURL(result.qr);
+            
+            res.json({
+                success: true,
+                type: 'qr_code',
+                qrCode: qrImage,
+                message: 'Scan QR code with WhatsApp'
+            });
+        } else if (result.type === 'pairing_code') {
+            res.json({
+                success: true,
+                type: 'pairing_code',
+                code: result.code,
+                message: 'Enter pairing code in WhatsApp'
+            });
+        } else {
+            res.json({
+                success: true,
+                message: 'Connecting...'
+            });
+        }
 
     } catch (error) {
         console.error('WhatsApp connect error:', error);
-        res.status(500).json({
-            success: false,
-            error: error.message
+        res.status(500).json({ 
+            success: false, 
+            error: error.message 
         });
     }
 });
 
-/**
- * GET /api/whatsapp/status - Get connection status
- */
-router.get('/status', async (req, res) => {
+// @route   GET /api/whatsapp/status
+// @desc    Get WhatsApp connection status
+// @access  Private
+router.get('/status', protect, async (req, res) => {
     try {
-        const userId = req.user._id;
-        const sessionId = req.query.sessionId || 'default';
-
-        const status = whatsappService.getClientStatus(userId, sessionId);
-
+        const status = whatsappService.getStatus();
+        
         res.json({
             success: true,
             data: status
         });
 
     } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: error.message
+        res.status(500).json({ 
+            success: false, 
+            error: error.message 
         });
     }
 });
 
-/**
- * POST /api/whatsapp/disconnect - Disconnect WhatsApp
- */
-router.post('/disconnect', async (req, res) => {
+// @route   POST /api/whatsapp/disconnect
+// @desc    Disconnect WhatsApp
+// @access  Private
+router.post('/disconnect', protect, async (req, res) => {
     try {
-        const userId = req.user._id;
-        const sessionId = req.body.sessionId || 'default';
+        await whatsappService.disconnect();
+        
+        // Update user
+        req.user.whatsapp.connected = false;
+        req.user.whatsapp.sessionData = null;
+        await req.user.save();
 
-        const result = await whatsappService.disconnectClient(userId, sessionId);
-
-        res.json(result);
+        res.json({
+            success: true,
+            message: 'WhatsApp disconnected successfully'
+        });
 
     } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: error.message
+        res.status(500).json({ 
+            success: false, 
+            error: error.message 
         });
     }
 });
 
-/**
- * POST /api/whatsapp/send - Send single message
- */
-router.post('/send', async (req, res) => {
+// @route   POST /api/whatsapp/send
+// @desc    Send single message
+// @access  Private
+router.post('/send', protect, async (req, res) => {
     try {
-        const { phoneNumber, message, sessionId } = req.body;
-        const userId = req.user._id;
+        const { to, message, mediaUrl, mediaType } = req.body;
 
-        const result = await whatsappService.sendMessage(
-            userId,
-            sessionId || 'default',
-            phoneNumber,
-            message
-        );
+        const result = await whatsappService.sendMessage(to, message, {
+            mediaUrl,
+            mediaType
+        });
 
-        res.json(result);
+        if (result.success) {
+            req.user.stats.totalMessagesSent++;
+            await req.user.save();
+        }
+
+        res.json({
+            success: result.success,
+            data: result
+        });
 
     } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: error.message
+        res.status(500).json({ 
+            success: false, 
+            error: error.message 
         });
     }
 });

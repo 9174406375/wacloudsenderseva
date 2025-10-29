@@ -1,22 +1,7 @@
 /**
  * ═══════════════════════════════════════════════════════════════
- * WA CLOUD SENDER SEVA - FINAL PRODUCTION SERVER v7.0
- * 
- * Complete Features:
- * - WhatsApp bulk messaging with anti-ban
- * - Order management system
- * - Folder watch for auto-import
- * - Real-time updates with Socket.IO
- * - User-defined delays and settings
- * - QR timer with countdown
- * - Admin notification (1st time only)
- * - Excel import/export
- * - Location filtering
- * - Campaign scheduling
- * - Failed message retry
- * 
- * Admin: sachinbamniya0143@gmail.com
- * Phone: +919174406375
+ * WA CLOUD SENDER SEVA - FINAL PRODUCTION v7.0
+ * Fixed for Render.com deployment
  * ═══════════════════════════════════════════════════════════════
  */
 
@@ -38,9 +23,12 @@ const { connectDB } = require('./config/database');
 const schedulerService = require('./services/schedulerService');
 const folderWatchService = require('./services/folderWatchService');
 
-// Configuration
-const PORT = process.env.PORT || 3000;
+// CRITICAL: Get PORT from environment (Render provides this)
+const PORT = process.env.PORT || 10000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
+const HOST = '0.0.0.0'; // MUST be 0.0.0.0 for Render
+
+console.log(`🔧 Starting server on ${HOST}:${PORT}`);
 
 // Create Express app
 const app = express();
@@ -70,7 +58,7 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-// Socket.IO connection handling
+// Socket.IO
 io.on('connection', (socket) => {
     console.log(`🔌 Socket connected: ${socket.id}`);
     
@@ -88,7 +76,6 @@ io.on('connection', (socket) => {
     });
 });
 
-// Make io available globally
 app.set('io', io);
 global.io = io;
 
@@ -100,15 +87,17 @@ const listRoutes = require('./routes/lists');
 const whatsappRoutes = require('./routes/whatsapp');
 const orderRoutes = require('./routes/orders');
 
-// Health check
+// Health check (CRITICAL for Render)
 app.get('/health', (req, res) => {
     const mongoose = require('mongoose');
-    res.json({
+    res.status(200).json({
         status: 'healthy',
         uptime: Math.floor(process.uptime()),
         mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
         memory: process.memoryUsage(),
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        port: PORT,
+        env: NODE_ENV
     });
 });
 
@@ -120,6 +109,7 @@ app.get('/api', (req, res) => {
         version: '7.0.0',
         status: 'running',
         mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+        port: PORT,
         endpoints: {
             auth: '/api/auth',
             campaigns: '/api/campaigns',
@@ -128,26 +118,6 @@ app.get('/api', (req, res) => {
             whatsapp: '/api/whatsapp',
             orders: '/api/orders',
             health: '/health'
-        },
-        features: [
-            'WhatsApp bulk messaging',
-            'Order management system',
-            'Folder watch auto-import',
-            'Real-time Socket.IO updates',
-            'User-defined delays',
-            'QR timer with countdown',
-            'Admin notifications',
-            'Excel import/export',
-            'Anti-ban protection',
-            'Campaign scheduling',
-            'Failed message retry',
-            'Location filtering',
-            'Variable replacement'
-        ],
-        admin: {
-            email: process.env.ADMIN_EMAIL,
-            phone: process.env.ADMIN_PHONE,
-            whatsapp: process.env.ADMIN_WHATSAPP
         }
     });
 });
@@ -204,21 +174,19 @@ async function startServer() {
         const dbConnected = await connectDB();
 
         if (dbConnected) {
-            // Initialize scheduler
             console.log('⏰ Initializing scheduler...');
             schedulerService.initializeScheduler(io);
 
-            // Initialize folder watch
             console.log('👁️  Initializing folder watch...');
             await folderWatchService.initializeFolderWatch(io);
         } else {
             console.log('⚠️  Running in LIMITED MODE (no database)');
         }
 
-        // Start HTTP server
-        server.listen(PORT, '0.0.0.0', () => {
+        // CRITICAL: Bind to HOST:PORT (must be 0.0.0.0 for Render)
+        server.listen(PORT, HOST, () => {
             console.log('\n' + '═'.repeat(70));
-            console.log(`📡 Server: http://localhost:${PORT}`);
+            console.log(`📡 Server: http://${HOST}:${PORT}`);
             console.log(`🌐 Environment: ${NODE_ENV}`);
             console.log(`📦 MongoDB: ${dbConnected ? 'Connected ✅' : 'Disconnected ⚠️'}`);
             console.log('═'.repeat(70));
@@ -273,7 +241,7 @@ process.on('unhandledRejection', (reason, promise) => {
     console.error('❌ Unhandled Rejection:', reason);
 });
 
-// Start the server
+// Start
 startServer();
 
 module.exports = { app, server, io };

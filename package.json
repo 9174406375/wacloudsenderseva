@@ -1,9 +1,13 @@
 {
   "name": "wa-cloud-sender-seva",
-  "version": "7.0.0",
-  "main": "server-minimal.js",
+  "version": "7.1.0",
+  "description": "WhatsApp Bulk Messaging Platform - Render Compatible",
+  "main": "server.js",
+  "engines": {
+    "node": ">=18.x"
+  },
   "scripts": {
-    "start": "node server-minimal.js"
+    "start": "node server.js"
   },
   "dependencies": {
     "express": "^4.18.2"

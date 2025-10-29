@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - WA Cloud Sender Seva</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .navbar-user {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .btn-logout {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-logout:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        .stat-icon.purple { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .stat-icon.green { background: linear-gradient(135deg, #56CCF2 0%, #2F80ED 100%); }
+        .stat-icon.orange { background: linear-gradient(135deg, #F2994A 0%, #F2C94C 100%); }
+        .stat-icon.red { background: linear-gradient(135deg, #EB5757 0%, #F27B7B 100%); }
+
+        .stat-label {
+            color: #8892A6;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2E3A59;
+        }
+
+        /* WhatsApp Status */
+        .whatsapp-status {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .status-badge.connected {
+            background: #D4EDDA;
+            color: #155724;
+        }
+
+        .status-badge.disconnected {
+            background: #F8D7DA;
+            color: #721C24;
+        }
+
+        .status-badge.connecting {
+            background: #FFF3CD;
+            color: #856404;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        /* Campaign Section */
+        .campaign-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2E3A59;
+        }
+
+        /* Campaign List */
+        .campaign-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .campaign-item {
+            border: 2px solid #E5E8EB;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+
+        .campaign-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+        }
+
+        .campaign-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .campaign-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2E3A59;
+        }
+
+        .campaign-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .campaign-stat {
+            text-align: center;
+            padding: 10px;
+            background: #F8F9FA;
+            border-radius: 8px;
+        }
+
+        .campaign-stat-label {
+            font-size: 12px;
+            color: #8892A6;
+            margin-bottom: 5px;
+        }
+
+        .campaign-stat-value {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .stat-value.green { color: #28a745; }
+        .stat-value.red { color: #dc3545; }
+        .stat-value.yellow { color: #ffc107; }
+
+        /* Progress Bar */
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: #E5E8EB;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.5s ease;
+            border-radius: 10px;
+        }
+
+        .progress-text {
+            font-size: 14px;
+            color: #8892A6;
+            text-align: center;
+            margin-top: 5px;
+        }
+
+        /* Real-time Log */
+        .realtime-log {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .log-item {
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+        }
+
+        .log-item.success {
+            background: #D4EDDA;
+            border-left: 4px solid #28a745;
+        }
+
+        .log-item.error {
+            background: #F8D7DA;
+            border-left: 4px solid #dc3545;
+        }
+
+        .log-item.info {
+            background: #D1ECF1;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .log-item.warning {
+            background: #FFF3CD;
+            border-left: 4px solid #ffc107;
+        }
+
+        .log-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .log-icon.success { background: #28a745; color: white; }
+        .log-icon.error { background: #dc3545; color: white; }
+        .log-icon.info { background: #17a2b8; color: white; }
+        .log-icon.warning { background: #ffc107; color: white; }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-brand">🚀 WA Cloud Sender Seva</div>
+        <div class="navbar-user">
+            <span id="user-name">Loading...</span>
+            <button class="btn-logout" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon purple">📊</div>
+                <div class="stat-label">Messages Sent Today</div>
+                <div class="stat-value" id="stat-sent">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green">📈</div>
+                <div class="stat-label">Success Rate</div>
+                <div class="stat-value" id="stat-success">0%</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon orange">👥</div>
+                <div class="stat-label">Total Contacts</div>
+                <div class="stat-value" id="stat-contacts">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon red">❌</div>
+                <div class="stat-label">Failed Messages</div>
+                <div class="stat-value" id="stat-failed">0</div>
+            </div>
+        </div>
+
+        <!-- WhatsApp Status -->
+        <div class="whatsapp-status">
+            <div class="section-header">
+                <h2 class="section-title">WhatsApp Connection</h2>
+                <span class="status-badge disconnected" id="whatsapp-status">Disconnected</span>
+            </div>
+            <div style="display: flex; gap: 15px; margin-top: 20px;">
+                <button class="btn btn-primary" onclick="connectWhatsApp()">
+                    Connect WhatsApp
+                </button>
+                <button class="btn btn-danger" onclick="disconnectWhatsApp()" style="display:none;" id="btn-disconnect">
+                    Disconnect
+                </button>
+            </div>
+            <div id="qr-code" style="margin-top: 20px; display: none;">
+                <p style="margin-bottom: 10px;">Scan this QR code with WhatsApp:</p>
+                <img id="qr-image" style="width: 300px; height: 300px; border: 2px solid #ddd; padding: 10px;">
+            </div>
+        </div>
+
+        <!-- Active Campaigns -->
+        <div class="campaign-section">
+            <div class="section-header">
+                <h2 class="section-title">Active Campaigns</h2>
+                <button class="btn btn-primary" onclick="createCampaign()">
+                    + New Campaign
+                </button>
+            </div>
+            <div class="campaign-list" id="campaign-list">
+                <p style="text-align: center; color: #8892A6; padding: 40px;">
+                    No active campaigns. Create one to get started!
+                </p>
+            </div>
+        </div>
+
+        <!-- Real-time Activity Log -->
+        <div class="campaign-section">
+            <h2 class="section-title" style="margin-bottom: 20px;">📡 Real-time Activity</h2>
+            <div class="realtime-log" id="activity-log">
+                <div class="log-item info">
+                    <div class="log-icon info">ℹ️</div>
+                    <div>Dashboard loaded successfully</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        let socket;
+        let currentUser;
+        let activeCampaigns = [];
+
+        // Initialize on page load
+        window.onload = async () => {
+            // Check authentication
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/';
+                return;
+            }
+
+            // Get user data
+            currentUser = JSON.parse(localStorage.getItem('user'));
+            document.getElementById('user-name').textContent = currentUser.name;
+
+            // Connect Socket.IO
+            connectSocket();
+
+            // Load data
+            await loadDashboardData();
+        };
+
+        // Connect Socket.IO for real-time updates
+        function connectSocket() {
+            socket = io({
+                auth: { token: localStorage.getItem('token') }
+            });
+
+            socket.on('connect', () => {
+                addLog('Connected to real-time server', 'success');
+                socket.emit('join', currentUser.id);
+            });
+
+            // WhatsApp events
+            socket.on('whatsapp:qr', (data) => {
+                document.getElementById('qr-code').style.display = 'block';
+                document.getElementById('qr-image').src = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' + encodeURIComponent(data.qrCode);
+                updateWhatsAppStatus('connecting');
+                addLog('QR Code generated. Please scan with WhatsApp', 'info');
+            });
+
+            socket.on('whatsapp:ready', (data) => {
+                document.getElementById('qr-code').style.display = 'none';
+                updateWhatsAppStatus('connected');
+                addLog(`WhatsApp connected: ${data.phoneNumber}`, 'success');
+            });
+
+            socket.on('whatsapp:disconnected', () => {
+                updateWhatsAppStatus('disconnected');
+                addLog('WhatsApp disconnected', 'error');
+            });
+
+            // Campaign events with COLOR-CODED status
+            socket.on('campaign:started', (data) => {
+                addLog(`Campaign started: ${data.total} messages queued`, 'info');
+            });
+
+            socket.on('campaign:message:sent', (data) => {
+                // GREEN - Success
+                addLog(`✅ Sent to ${data.contact.name} (${data.contact.phone})`, 'success');
+                updateCampaignProgress(data.campaignId, data.progress);
+                updateStats();
+            });
+
+            socket.on('campaign:message:failed', (data) => {
+                // RED - Failed
+                addLog(`❌ Failed to ${data.contact.name}: ${data.error}`, 'error');
+                updateCampaignProgress(data.campaignId, data.progress);
+                updateStats();
+            });
+
+            socket.on('campaign:cooldown', (data) => {
+                // YELLOW - Cooldown
+                addLog(`⏳ Cooldown period: ${data.duration/1000}s`, 'warning');
+            });
+
+            socket.on('campaign:completed', (data) => {
+                addLog(`✅ Campaign completed! ${data.stats.sent} sent, ${data.stats.failed} failed`, 'success');
+                loadDashboardData();
+            });
+        }
+
+        // Update WhatsApp status badge
+        function updateWhatsAppStatus(status) {
+            const badge = document.getElementById('whatsapp-status');
+            badge.className = `status-badge ${status}`;
+            badge.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+            
+            if (status === 'connected') {
+                document.getElementById('btn-disconnect').style.display = 'inline-block';
+            } else {
+                document.getElementById('btn-disconnect').style.display = 'none';
+            }
+        }
+
+        // Add log entry
+        function addLog(message, type = 'info') {
+            const log = document.getElementById('activity-log');
+            const time = new Date().toLocaleTimeString();
+            
+            const icons = {
+                success: '✅',
+                error: '❌',
+                info: 'ℹ️',
+                warning: '⚠️'
+            };
+
+            const logItem = document.createElement('div');
+            logItem.className = `log-item ${type}`;
+            logItem.innerHTML = `
+                <div class="log-icon ${type}">${icons[type]}</div>
+                <div>
+                    <strong>${time}</strong> - ${message}
+                </div>
+            `;
+            
+            log.insertBefore(logItem, log.firstChild);
+            
+            // Keep only last 50 logs
+            while (log.children.length > 50) {
+                log.removeChild(log.lastChild);
+            }
+        }
+
+        // Load dashboard data
+        async function loadDashboardData() {
+            try {
+                const token = localStorage.getItem('token');
+
+                // Load stats
+                const statsRes = await fetch('/api/campaigns/stats', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const stats = await statsRes.json();
+
+                if (stats.success) {
+                    document.getElementById('stat-sent').textContent = stats.data.totalSent || 0;
+                    document.getElementById('stat-failed').textContent = stats.data.totalFailed || 0;
+                    document.getElementById('stat-contacts').textContent = stats.data.totalContacts || 0;
+                    document.getElementById('stat-success').textContent = stats.data.successRate ? stats.data.successRate + '%' : '0%';
+                }
+
+                // Load campaigns
+                const campaignsRes = await fetch('/api/campaigns', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const campaigns = await campaignsRes.json();
+
+                if (campaigns.success) {
+                    displayCampaigns(campaigns.data);
+                }
+
+            } catch (error) {
+                addLog('Failed to load dashboard data', 'error');
+            }
+        }
+
+        // Display campaigns
+        function displayCampaigns(campaigns) {
+            const list = document.getElementById('campaign-list');
+            
+            if (campaigns.length === 0) {
+                list.innerHTML = '<p style="text-align: center; color: #8892A6; padding: 40px;">No campaigns yet</p>';
+                return;
+            }
+
+            list.innerHTML = campaigns.map(campaign => `
+                <div class="campaign-item" id="campaign-${campaign._id}">
+                    <div class="campaign-header">
+                        <div class="campaign-name">${campaign.name}</div>
+                        <span class="status-badge ${campaign.status}">${campaign.status}</span>
+                    </div>
+                    <div class="campaign-stats">
+                        <div class="campaign-stat">
+                            <div class="campaign-stat-label">Sent</div>
+                            <div class="campaign-stat-value stat-value green">${campaign.stats.sent}</div>
+                        </div>
+                        <div class="campaign-stat">
+                            <div class="campaign-stat-label">Failed</div>
+                            <div class="campaign-stat-value stat-value red">${campaign.stats.failed}</div>
+                        </div>
+                        <div class="campaign-stat">
+                            <div class="campaign-stat-label">Total</div>
+                            <div class="campaign-stat-value">${campaign.stats.totalRecipients}</div>
+                        </div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${campaign.stats.deliveryRate || 0}%"></div>
+                    </div>
+                    <div class="progress-text">${campaign.stats.deliveryRate || 0}% Complete</div>
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        ${campaign.status === 'draft' ? `<button class="btn btn-success" onclick="startCampaign('${campaign._id}')">Start</button>` : ''}
+                        ${campaign.status === 'running' ? `<button class="btn btn-danger" onclick="pauseCampaign('${campaign._id}')">Pause</button>` : ''}
+                        ${campaign.status === 'paused' ? `<button class="btn btn-success" onclick="resumeCampaign('${campaign._id}')">Resume</button>` : ''}
+                        ${campaign.stats.failed > 0 ? `<button class="btn btn-primary" onclick="retryFailed('${campaign._id}')">Retry Failed</button>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Update campaign progress in real-time
+        function updateCampaignProgress(campaignId, progress) {
+            const card = document.getElementById(`campaign-${campaignId}`);
+            if (!card) return;
+
+            const percentage = Math.round((progress.sent / progress.total) * 100);
+            card.querySelector('.progress-fill').style.width = percentage + '%';
+            card.querySelector('.progress-text').textContent = percentage + '% Complete';
+            card.querySelector('.campaign-stat-value.green').textContent = progress.sent;
+            card.querySelector('.campaign-stat-value.red').textContent = progress.failed;
+        }
+
+        // Update stats in real-time
+        function updateStats() {
+            loadDashboardData();
+        }
+
+        // Logout
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/';
+        }
+
+        // Campaign actions
+        async function startCampaign(id) {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`/api/campaigns/${id}/start`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (data.success) {
+                addLog('Campaign started', 'success');
+                loadDashboardData();
+            }
+        }
+
+        async function connectWhatsApp() {
+            addLog('Connecting WhatsApp...', 'info');
+            // TODO: Implement WhatsApp connection
+        }
+
+        async function disconnectWhatsApp() {
+            addLog('Disconnecting WhatsApp...', 'warning');
+            // TODO: Implement WhatsApp disconnection
+        }
+
+        function createCampaign() {
+            // TODO: Open campaign creation modal
+            alert('Campaign creation coming soon!');
+        }
+    </script>
+</body>
+</html>

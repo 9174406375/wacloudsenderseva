@@ -1,219 +1,85 @@
 require('dotenv').config();
 const express = require('express');
+const mongoose = require('mongoose');
+const passport = require('passport');
+const cookieParser = require('cookie-parser');
+const session = require('express-session');
 const cors = require('cors');
-const helmet = require('helmet');
-const compression = require('compression');
-const http = require('http');
-const socketIO = require('socket.io');
-const path = require('path');
-const fs = require('fs');
-const { connectDB } = require('./config/database');
 
-// Initialize Express
 const app = express();
-const server = http.createServer(app);
 
-// Socket.IO
-const io = socketIO(server, {
-    cors: { origin: '*', methods: ['GET', 'POST'] }
-});
+// Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+app.use(cors({
+    origin: process.env.CLIENT_URL || 'http://localhost:3000',
+    credentials: true
+}));
 
-const PORT = process.env.PORT || 3000;
-const NODE_ENV = process.env.NODE_ENV || 'development';
+// Session configuration
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'your-session-secret',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 24 * 60 * 60 * 1000
+    }
+}));
 
-// ==========================================
-// MIDDLEWARE
-// ==========================================
-app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
-app.use(compression());
-app.use(cors());
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+// Passport configuration
+require('./config/passport');
+app.use(passport.initialize());
+app.use(passport.session());
 
-// Create directories
-['uploads', 'sessions', 'public'].forEach(dir => {
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-});
+// MongoDB Connection
+mongoose.connect(process.env.MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+})
+.then(() => console.log('✅ MongoDB Connected'))
+.catch(err => console.error('❌ MongoDB Connection Error:', err));
 
-app.use(express.static('public'));
+// Routes
+const authRoutes = require('./routes/auth');
+app.use('/api/auth', authRoutes);
 
-// Request logger
-app.use((req, res, next) => {
-    console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
-    next();
-});
-
-// ==========================================
-// CONNECT DATABASE
-// ==========================================
-let dbConnected = false;
-connectDB()
-    .then(() => {
-        dbConnected = true;
-        console.log('✅ Database ready!');
-        
-        // Auto-create admin if not exists
-        const User = require('./models/User');
-        User.findOne({ email: 'sachinbamniya0143@gmail.com' })
-            .then(admin => {
-                if (!admin) {
-                    console.log('📝 Creating admin user...');
-                    return User.create({
-                        name: 'Sachin Bamniya',
-                        email: 'sachinbamniya0143@gmail.com',
-                        phone: '+919174406375',
-                        password: 'admin@2025',
-                        role: 'superadmin',
-                        permissions: {
-                            canCreateCampaigns: true,
-                            canImportContacts: true,
-                            canUseTemplates: true,
-                            canAccessAnalytics: true,
-                            canManageOrders: true,
-                            canAccessAdmin: true,
-                            maxCampaignsPerDay: 9999,
-                            maxContactsPerCampaign: 999999,
-                            maxOrdersPerDay: 9999
-                        },
-                        isActive: true,
-                        isVerified: true
-                    });
-                }
-            })
-            .then(admin => {
-                if (admin) {
-                    console.log('✅ Admin user ready!');
-                    console.log('📧 Email: sachinbamniya0143@gmail.com');
-                    console.log('🔐 Password: admin@2025');
-                }
-            })
-            .catch(err => console.error('Admin creation error:', err));
-    })
-    .catch(err => {
-        console.error('❌ Database connection failed:', err.message);
-    });
-
-// Socket.IO
-io.on('connection', (socket) => {
-    console.log('✅ Socket connected:', socket.id);
-    socket.on('disconnect', () => console.log('❌ Socket disconnected:', socket.id));
-});
-
-app.set('io', io);
-
-// ==========================================
-// ROUTES
-// ==========================================
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
+// Health check
 app.get('/health', (req, res) => {
     res.json({
-        success: true,
-        status: 'healthy',
-        uptime: process.uptime(),
-        timestamp: new Date().toISOString(),
-        environment: NODE_ENV,
-        mongodb: dbConnected ? 'connected' : 'disconnected',
-        port: PORT
+        status: 'running',
+        timestamp: new Date().toISOString()
     });
 });
 
-app.get('/api', (req, res) => {
+// Home route
+app.get('/', (req, res) => {
     res.json({
-        success: true,
-        name: 'WA Complete Mega System API',
-        version: '11.0.0-FINAL',
-        admin: 'sachinbamniya0143@gmail.com',
-        adminPassword: 'admin@2025',
-        mongodb: dbConnected ? 'connected' : 'disconnected',
-        features: [
-            '📦 Book Order Management',
-            '📱 WhatsApp Integration',
-            '📧 Bulk Messaging',
-            '📊 Campaign Management',
-            '👥 Contact Management',
-            '📝 Templates',
-            '👨‍💼 Admin Panel',
-            '📈 Analytics'
-        ],
+        message: '🚀 WA Cloud Sender Seva API',
+        version: '3.0.0',
         endpoints: {
-            auth: {
-                register: 'POST /api/auth/register',
-                login: 'POST /api/auth/login',
-                me: 'GET /api/auth/me'
-            },
-            orders: 'See /api for full docs',
-            campaigns: 'See /api for full docs',
-            contacts: 'See /api for full docs'
+            register: 'POST /api/auth/register',
+            login: 'POST /api/auth/login',
+            googleAuth: 'GET /api/auth/google',
+            profile: 'GET /api/auth/me'
         }
     });
 });
 
-// API Routes
-try {
-    app.use('/api/auth', require('./routes/auth'));
-    app.use('/api/orders', require('./routes/orders'));
-    app.use('/api/campaigns', require('./routes/campaigns'));
-    app.use('/api/contacts', require('./routes/contacts'));
-    app.use('/api/whatsapp', require('./routes/whatsapp'));
-    app.use('/api/templates', require('./routes/templates'));
-    app.use('/api/admin', require('./routes/admin'));
-    app.use('/api/analytics', require('./routes/analytics'));
-    console.log('✅ All routes loaded!');
-} catch (error) {
-    console.error('❌ Route loading error:', error.message);
-}
-
-// ==========================================
-// ERROR HANDLING
-// ==========================================
-app.use((req, res) => {
-    res.status(404).json({
-        success: false,
-        error: 'Route not found',
-        path: req.originalUrl,
-        availableRoutes: [
-            '/api',
-            '/health',
-            '/api/auth/register',
-            '/api/auth/login'
-        ]
-    });
-});
-
+// Error handler
 app.use((err, req, res, next) => {
-    console.error('❌ Error:', err);
-    res.status(err.status || 500).json({
+    console.error(err.stack);
+    res.status(500).json({
         success: false,
-        error: err.message || 'Internal Server Error',
-        ...(NODE_ENV === 'development' && { stack: err.stack })
+        message: 'Server Error',
+        error: err.message
     });
 });
 
-// ==========================================
-// START SERVER
-// ==========================================
-server.listen(PORT, '0.0.0.0', () => {
-    console.log('\n' + '='.repeat(80));
-    console.log('🚀 WA COMPLETE MEGA SYSTEM - SERVER STARTED');
-    console.log('='.repeat(80));
-    console.log(`📡 Server: http://localhost:${PORT}`);
-    console.log(`🌐 Environment: ${NODE_ENV}`);
-    console.log(`👤 Admin: sachinbamniya0143@gmail.com`);
-    console.log(`🔐 Password: admin@2025`);
-    console.log(`📅 Time: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`);
-    console.log('='.repeat(80));
-    console.log('✅ Ready to accept requests!\n');
+// Start server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`📡 Environment: ${process.env.NODE_ENV || 'development'}`);
 });
-
-process.on('SIGTERM', () => {
-    console.log('⚠️  SIGTERM received, closing...');
-    server.close(() => {
-        console.log('✅ Server closed');
-        process.exit(0);
-    });
-});
-
-module.exports = { app, server, io };

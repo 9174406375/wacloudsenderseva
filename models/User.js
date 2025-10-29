@@ -1,117 +1,87 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 
 const userSchema = new mongoose.Schema({
-    name: { type: String, required: true, trim: true },
-    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-    phone: { type: String, required: true },
-    password: { type: String, required: true },
-    role: { 
-        type: String, 
-        enum: ['user', 'admin', 'superadmin'], 
-        default: 'user' 
+    name: {
+        type: String,
+        required: [true, 'Name is required'],
+        trim: true
     },
-    
-    // WhatsApp Connection
+    email: {
+        type: String,
+        required: [true, 'Email is required'],
+        unique: true,
+        lowercase: true,
+        trim: true
+    },
+    password: {
+        type: String,
+        minlength: [6, 'Password must be at least 6 characters']
+    },
+    googleId: {
+        type: String,
+        sparse: true,
+        unique: true
+    },
+    phone: String,
+    role: {
+        type: String,
+        enum: ['user', 'admin'],
+        default: 'user'
+    },
+    isVerified: {
+        type: Boolean,
+        default: false
+    },
     whatsapp: {
-        connected: { type: Boolean, default: false },
-        number: String,
-        qrCode: String,
-        pairingCode: String,
-        sessionData: mongoose.Schema.Types.Mixed,
-        lastConnected: Date,
-        connectionAttempts: { type: Number, default: 0 }
-    },
-    
-    // Admin Permissions
-    permissions: {
-        canCreateCampaigns: { type: Boolean, default: true },
-        canImportContacts: { type: Boolean, default: true },
-        canUseTemplates: { type: Boolean, default: false },
-        canAccessAnalytics: { type: Boolean, default: false },
-        canManageOrders: { type: Boolean, default: false },
-        canAccessAdmin: { type: Boolean, default: false },
-        maxCampaignsPerDay: { type: Number, default: 10 },
-        maxContactsPerCampaign: { type: Number, default: 1000 },
-        maxOrdersPerDay: { type: Number, default: 100 }
-    },
-    
-    // Subscription
-    subscription: {
-        plan: { 
-            type: String, 
-            enum: ['free', 'basic', 'pro', 'enterprise'], 
-            default: 'free' 
+        connected: {
+            type: Boolean,
+            default: false
         },
-        startDate: Date,
-        endDate: Date,
-        isActive: { type: Boolean, default: true },
-        features: [String]
+        phoneNumber: String,
+        sessionId: String,
+        qrCode: String,
+        lastConnected: Date
     },
-    
-    // Location (Pincode System)
-    location: {
-        pincode: String,
-        city: String,
-        district: String,
-        state: String,
-        country: { type: String, default: 'India' },
-        address: String
-    },
-    
-    // Usage Statistics
-    stats: {
-        totalCampaigns: { type: Number, default: 0 },
-        totalMessagesSent: { type: Number, default: 0 },
-        totalContacts: { type: Number, default: 0 },
-        totalOrders: { type: Number, default: 0 },
-        totalTemplates: { type: Number, default: 0 },
-        lastLoginAt: Date,
-        lastActivityAt: Date
-    },
-    
-    // Account Status
-    isActive: { type: Boolean, default: true },
-    isVerified: { type: Boolean, default: false },
-    verificationToken: String,
     resetPasswordToken: String,
-    resetPasswordExpires: Date,
-    
-    createdAt: { type: Date, default: Date.now },
-    updatedAt: { type: Date, default: Date.now }
-}, { timestamps: true });
-
-// Indexes for performance
-userSchema.index({ email: 1 });
-userSchema.index({ 'whatsapp.number': 1 });
-userSchema.index({ 'location.pincode': 1 });
-userSchema.index({ role: 1 });
+    resetPasswordExpire: Date,
+    lastLogin: Date
+}, {
+    timestamps: true
+});
 
 // Hash password before saving
 userSchema.pre('save', async function(next) {
-    if (!this.isModified('password')) return next();
-    this.password = await bcrypt.hash(this.password, 12);
-    this.updatedAt = Date.now();
+    if (!this.isModified('password')) {
+        return next();
+    }
+    
+    if (this.password) {
+        const salt = await bcrypt.genSalt(10);
+        this.password = await bcrypt.hash(this.password, salt);
+    }
     next();
 });
 
-// Match password
-userSchema.methods.matchPassword = async function(password) {
-    return await bcrypt.compare(password, this.password);
+// Compare password
+userSchema.methods.comparePassword = async function(candidatePassword) {
+    if (!this.password) return false;
+    return await bcrypt.compare(candidatePassword, this.password);
 };
 
-// Update last login
-userSchema.methods.updateLastLogin = async function() {
-    this.stats.lastLoginAt = new Date();
-    this.stats.lastActivityAt = new Date();
-    await this.save();
-};
-
-// Check if user can perform action
-userSchema.methods.canPerformAction = function(action) {
-    if (this.role === 'superadmin') return true;
-    if (this.role === 'admin') return this.permissions.canAccessAdmin;
-    return this.permissions[action] || false;
+// Generate password reset token
+userSchema.methods.getResetPasswordToken = function() {
+    const resetToken = crypto.randomBytes(20).toString('hex');
+    
+    this.resetPasswordToken = crypto
+        .createHash('sha256')
+        .update(resetToken)
+        .digest('hex');
+    
+    this.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
+    
+    return resetToken;
 };
 
 module.exports = mongoose.model('User', userSchema);

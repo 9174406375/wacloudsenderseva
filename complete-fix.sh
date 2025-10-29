@@ -1,3 +1,15 @@
+#!/bin/bash
+
+echo "🔧 Complete System Fix..."
+
+# Install missing packages
+npm install moment-timezone --save --ignore-scripts
+
+# Delete & renew problematic files
+rm -f routes/analytics.js
+
+# Create analytics without moment-timezone
+cat > routes/analytics.js << 'EOF'
 const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/auth');
@@ -31,3 +43,12 @@ router.get('/dashboard', protect, async (req, res) => {
 });
 
 module.exports = router;
+EOF
+
+echo "✅ Files renewed!"
+
+# Test server
+timeout 5 node server.js 2>&1 | head -20
+
+echo ""
+echo "🚀 If no errors above, run: node server.js"

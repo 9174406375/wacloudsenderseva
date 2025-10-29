@@ -664,3 +664,81 @@
     </script>
 </body>
 </html>
+
+<script>
+// WhatsApp Connection Handler (FIXED)
+async function connectWhatsApp() {
+    try {
+        addLog('Connecting WhatsApp...', 'info');
+        
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/whatsapp/connect', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ sessionId: 'default' })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            addLog('WhatsApp connection initiated', 'success');
+            updateWhatsAppStatus('connecting');
+        } else {
+            addLog('Failed to connect: ' + data.error, 'error');
+        }
+
+    } catch (error) {
+        addLog('Connection error: ' + error.message, 'error');
+    }
+}
+
+async function disconnectWhatsApp() {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/whatsapp/disconnect', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            addLog('WhatsApp disconnected', 'warning');
+            updateWhatsAppStatus('disconnected');
+        }
+
+    } catch (error) {
+        addLog('Disconnect error: ' + error.message, 'error');
+    }
+}
+
+// Check WhatsApp status on page load
+async function checkWhatsAppStatus() {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/whatsapp/status', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const data = await response.json();
+        
+        if (data.success && data.data.isReady) {
+            updateWhatsAppStatus('connected');
+        }
+
+    } catch (error) {
+        console.error('Status check error:', error);
+    }
+}
+
+// Check status on load
+window.addEventListener('load', () => {
+    setTimeout(checkWhatsAppStatus, 2000);
+});
+</script>

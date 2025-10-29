@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - WA Cloud Sender Seva</title>
+    <title>WA Cloud Sender Seva - Login</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-        }
-
-        body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
@@ -20,342 +20,310 @@
             justify-content: center;
             padding: 20px;
         }
-
-        .login-container {
+        
+        .container {
             background: white;
+            padding: 40px;
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
-            max-width: 1000px;
             width: 100%;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+            max-width: 450px;
+            animation: slideUp 0.5s ease;
         }
-
-        .login-left {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 60px 40px;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-
-        .login-left h1 {
-            font-size: 36px;
-            margin-bottom: 20px;
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
         }
-
-        .login-left p {
-            font-size: 18px;
-            line-height: 1.6;
-            opacity: 0.9;
+        
+        .logo h1 {
+            color: #667eea;
+            font-size: 32px;
+            margin-bottom: 10px;
         }
-
-        .features {
-            margin-top: 40px;
+        
+        .logo p {
+            color: #666;
+            font-size: 14px;
         }
-
-        .feature {
-            display: flex;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .feature-icon {
-            width: 40px;
-            height: 40px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 15px;
-            font-size: 20px;
-        }
-
-        .login-right {
-            padding: 60px 40px;
-        }
-
+        
         .tabs {
             display: flex;
             margin-bottom: 30px;
-            border-bottom: 2px solid #f0f0f0;
+            border-bottom: 2px solid #e1e8ed;
         }
-
+        
         .tab {
             flex: 1;
-            padding: 15px;
             text-align: center;
+            padding: 15px;
             cursor: pointer;
-            font-size: 16px;
+            color: #666;
             font-weight: 600;
-            color: #999;
-            border-bottom: 3px solid transparent;
             transition: all 0.3s;
+            border-bottom: 3px solid transparent;
         }
-
+        
         .tab.active {
             color: #667eea;
             border-bottom-color: #667eea;
         }
-
-        .form-container {
-            display: none;
-        }
-
-        .form-container.active {
-            display: block;
-        }
-
+        
         .form-group {
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
-
-        .form-group label {
+        
+        label {
             display: block;
             margin-bottom: 8px;
             color: #333;
-            font-weight: 500;
+            font-weight: 600;
+            font-size: 14px;
         }
-
-        .form-group input {
+        
+        input {
             width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
+            padding: 15px;
+            border: 2px solid #e1e8ed;
             border-radius: 10px;
-            font-size: 15px;
-            transition: all 0.3s;
+            font-size: 16px;
+            transition: border-color 0.3s;
         }
-
-        .form-group input:focus {
+        
+        input:focus {
             outline: none;
             border-color: #667eea;
         }
-
-        .btn {
+        
+        button {
             width: 100%;
             padding: 15px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
             border-radius: 10px;
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 600;
             cursor: pointer;
             transition: transform 0.2s;
         }
-
-        .btn:hover {
+        
+        button:hover {
             transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
         }
-
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
+        
+        button:active {
+            transform: translateY(0);
         }
-
-        .alert {
-            padding: 12px 15px;
-            border-radius: 8px;
+        
+        .message {
+            padding: 15px;
             margin-bottom: 20px;
-            display: none;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+            animation: slideDown 0.3s ease;
         }
-
-        .alert.success {
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .success {
             background: #d4edda;
             color: #155724;
-            border: 1px solid #c3e6cb;
+            border: 2px solid #c3e6cb;
         }
-
-        .alert.error {
+        
+        .error {
             background: #f8d7da;
             color: #721c24;
-            border: 1px solid #f5c6cb;
+            border: 2px solid #f5c6cb;
         }
-
-        .alert.show {
-            display: block;
+        
+        .hidden {
+            display: none;
         }
-
-        @media (max-width: 768px) {
-            .login-container {
-                grid-template-columns: 1fr;
-            }
-            .login-left {
-                display: none;
-            }
+        
+        .loading {
+            pointer-events: none;
+            opacity: 0.6;
+        }
+        
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s infinite;
+        }
+        
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
         }
     </style>
 </head>
 <body>
-    <div class="login-container">
-        <div class="login-left">
-            <h1>🚀 WA Cloud Sender Seva</h1>
-            <p>Enterprise WhatsApp Bulk Messaging Platform</p>
-            
-            <div class="features">
-                <div class="feature">
-                    <div class="feature-icon">✅</div>
-                    <div>Bulk WhatsApp Messaging</div>
-                </div>
-                <div class="feature">
-                    <div class="feature-icon">📊</div>
-                    <div>Campaign Management</div>
-                </div>
-                <div class="feature">
-                    <div class="feature-icon">📈</div>
-                    <div>Real-time Analytics</div>
-                </div>
-                <div class="feature">
-                    <div class="feature-icon">🔒</div>
-                    <div>Secure & Reliable</div>
-                </div>
-            </div>
+    <div class="container">
+        <div class="logo">
+            <h1>🚀 WA Cloud Sender</h1>
+            <p>Professional WhatsApp Bulk Messaging Platform</p>
         </div>
-
-        <div class="login-right">
-            <div class="tabs">
-                <div class="tab active" onclick="showTab('login')">Login</div>
-                <div class="tab" onclick="showTab('register')">Register</div>
-            </div>
-
-            <div id="alert" class="alert"></div>
-
-            <!-- Login Form -->
-            <div id="login-form" class="form-container active">
-                <form onsubmit="handleLogin(event)">
-                    <div class="form-group">
-                        <label>Email</label>
-                        <input type="email" id="login-email" required placeholder="your@email.com">
-                    </div>
-                    <div class="form-group">
-                        <label>Password</label>
-                        <input type="password" id="login-password" required placeholder="••••••••">
-                    </div>
-                    <button type="submit" class="btn" id="login-btn">Login</button>
-                </form>
-            </div>
-
-            <!-- Register Form -->
-            <div id="register-form" class="form-container">
-                <form onsubmit="handleRegister(event)">
-                    <div class="form-group">
-                        <label>Full Name</label>
-                        <input type="text" id="register-name" required placeholder="Sachin Bamniya">
-                    </div>
-                    <div class="form-group">
-                        <label>Email</label>
-                        <input type="email" id="register-email" required placeholder="your@email.com">
-                    </div>
-                    <div class="form-group">
-                        <label>Phone Number</label>
-                        <input type="tel" id="register-phone" required placeholder="9174063759">
-                    </div>
-                    <div class="form-group">
-                        <label>Password</label>
-                        <input type="password" id="register-password" required placeholder="••••••••">
-                    </div>
-                    <button type="submit" class="btn" id="register-btn">Create Account</button>
-                </form>
-            </div>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('login')">Login</div>
+            <div class="tab" onclick="switchTab('register')">Register</div>
         </div>
+        
+        <div id="message"></div>
+        
+        <!-- Login Form -->
+        <form id="loginForm" class="form">
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" id="loginEmail" placeholder="Enter your email" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="loginPassword" placeholder="Enter your password" required>
+            </div>
+            <button type="submit">Login</button>
+        </form>
+        
+        <!-- Register Form -->
+        <form id="registerForm" class="form hidden">
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" id="registerName" placeholder="Enter your full name" required>
+            </div>
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" id="registerEmail" placeholder="Enter your email" required>
+            </div>
+            <div class="form-group">
+                <label>Phone Number</label>
+                <input type="tel" id="registerPhone" placeholder="Enter your phone number" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="registerPassword" placeholder="Create a password" required>
+            </div>
+            <button type="submit">Register</button>
+        </form>
     </div>
-
+    
     <script>
-        // Tab switching
-        function showTab(tab) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.form-container').forEach(f => f.classList.remove('active'));
+        function switchTab(tab) {
+            const tabs = document.querySelectorAll('.tab');
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
             
+            tabs.forEach(t => t.classList.remove('active'));
             event.target.classList.add('active');
-            document.getElementById(tab + '-form').classList.add('active');
-            hideAlert();
+            
+            if (tab === 'login') {
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+            } else {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+            }
+            
+            document.getElementById('message').innerHTML = '';
         }
-
-        // Show alert
-        function showAlert(message, type) {
-            const alert = document.getElementById('alert');
-            alert.textContent = message;
-            alert.className = `alert ${type} show`;
+        
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.innerHTML = `<div class="message ${type}">${message}</div>`;
         }
-
-        function hideAlert() {
-            document.getElementById('alert').classList.remove('show');
-        }
-
-        // Login handler
-        async function handleLogin(e) {
+        
+        // Login Handler
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const btn = document.getElementById('login-btn');
-            btn.disabled = true;
-            btn.textContent = 'Logging in...';
-
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-
+            const btn = e.target.querySelector('button');
+            btn.classList.add('loading');
+            btn.textContent = 'Logging in';
+            
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
             try {
                 const response = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password })
                 });
-
+                
                 const data = await response.json();
-
+                
                 if (data.success) {
-                    localStorage.setItem('token', data.token);
-                    localStorage.setItem('user', JSON.stringify(data.user));
-                    showAlert('Login successful! Redirecting...', 'success');
-                    setTimeout(() => window.location.href = '/dashboard.html', 1000);
+                    localStorage.setItem('token', data.data.token);
+                    localStorage.setItem('user', JSON.stringify(data.data));
+                    showMessage('✅ Login successful! Redirecting...', 'success');
+                    setTimeout(() => window.location.href = '/dashboard.html', 1500);
                 } else {
-                    showAlert(data.error || 'Login failed', 'error');
+                    showMessage('❌ ' + data.error, 'error');
                 }
             } catch (error) {
-                showAlert('Connection error. Please try again.', 'error');
+                showMessage('❌ Network error. Please try again.', 'error');
             } finally {
-                btn.disabled = false;
+                btn.classList.remove('loading');
                 btn.textContent = 'Login';
             }
-        }
-
-        // Register handler
-        async function handleRegister(e) {
+        });
+        
+        // Register Handler
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const btn = document.getElementById('register-btn');
-            btn.disabled = true;
-            btn.textContent = 'Creating account...';
-
-            const name = document.getElementById('register-name').value;
-            const email = document.getElementById('register-email').value;
-            const phone = document.getElementById('register-phone').value;
-            const password = document.getElementById('register-password').value;
-
+            const btn = e.target.querySelector('button');
+            btn.classList.add('loading');
+            btn.textContent = 'Creating account';
+            
+            const name = document.getElementById('registerName').value;
+            const email = document.getElementById('registerEmail').value;
+            const phone = document.getElementById('registerPhone').value;
+            const password = document.getElementById('registerPassword').value;
+            
             try {
                 const response = await fetch('/api/auth/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name, email, phone, password })
                 });
-
+                
                 const data = await response.json();
-
+                
                 if (data.success) {
-                    localStorage.setItem('token', data.token);
-                    localStorage.setItem('user', JSON.stringify(data.user));
-                    showAlert('Registration successful! Redirecting...', 'success');
-                    setTimeout(() => window.location.href = '/dashboard.html', 1000);
+                    showMessage('✅ Registration successful! Please login.', 'success');
+                    setTimeout(() => switchTab('login'), 2000);
                 } else {
-                    showAlert(data.error || 'Registration failed', 'error');
+                    showMessage('❌ ' + data.error, 'error');
                 }
             } catch (error) {
-                showAlert('Connection error. Please try again.', 'error');
+                showMessage('❌ Network error. Please try again.', 'error');
             } finally {
-                btn.disabled = false;
-                btn.textContent = 'Create Account';
+                btn.classList.remove('loading');
+                btn.textContent = 'Register';
             }
-        }
+        });
     </script>
 </body>
 </html>

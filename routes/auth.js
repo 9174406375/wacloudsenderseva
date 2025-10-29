@@ -1,85 +1,59 @@
 const express = require('express');
 const router = express.Router();
+const jwt = require('jsonwebtoken');
+const User = require('../models/User');
 
-// Temporary in-memory users (for now)
-const users = [];
+const generateToken = (id) => {
+    return jwt.sign({ id }, process.env.JWT_SECRET || 'default_secret', { expiresIn: '30d' });
+};
 
-// Register
 router.post('/register', async (req, res) => {
     try {
         const { name, email, phone, password } = req.body;
         
-        // Check if user exists
-        const existingUser = users.find(u => u.email === email);
-        if (existingUser) {
-            return res.status(400).json({
-                success: false,
-                error: 'User already exists'
-            });
+        const userExists = await User.findOne({ email });
+        if (userExists) {
+            return res.status(400).json({ success: false, error: 'User already exists' });
         }
         
-        // Create user
-        const user = {
-            id: users.length + 1,
-            name,
-            email,
-            phone,
-            password, // In production, hash this!
-            createdAt: new Date()
-        };
-        
-        users.push(user);
+        const user = await User.create({ name, email, phone, password });
         
         res.status(201).json({
             success: true,
-            message: 'User registered successfully',
+            message: 'Registration successful',
             data: {
-                id: user.id,
+                id: user._id,
                 name: user.name,
                 email: user.email,
-                phone: user.phone
+                token: generateToken(user._id)
             }
         });
-        
     } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
+        res.status(500).json({ success: false, error: error.message });
     }
 });
 
-// Login
 router.post('/login', async (req, res) => {
     try {
         const { email, password } = req.body;
         
-        // Find user
-        const user = users.find(u => u.email === email && u.password === password);
-        
-        if (!user) {
-            return res.status(401).json({
-                success: false,
-                error: 'Invalid credentials'
-            });
+        const user = await User.findOne({ email });
+        if (!user || !(await user.matchPassword(password))) {
+            return res.status(401).json({ success: false, error: 'Invalid credentials' });
         }
         
         res.json({
             success: true,
             message: 'Login successful',
             data: {
-                id: user.id,
+                id: user._id,
                 name: user.name,
                 email: user.email,
-                phone: user.phone
+                token: generateToken(user._id)
             }
         });
-        
     } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
+        res.status(500).json({ success: false, error: error.message });
     }
 });
 

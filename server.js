@@ -1,144 +1,103 @@
+require('dotenv').config();
 const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
 const http = require('http');
+const socketIO = require('socket.io');
 const path = require('path');
-
-const PORT = process.env.PORT || 10000;
-const HOST = '0.0.0.0';
+const { connectDB } = require('./config/database');
+const { startScheduler } = require('./services/scheduler');
 
 const app = express();
 const server = http.createServer(app);
+const io = socketIO(server, {
+    cors: { origin: '*', methods: ['GET', 'POST'] }
+});
+
+const PORT = process.env.PORT || 3000;
 
 // Middleware
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Import routes
-const authRoutes = require('./routes/auth');
+// MongoDB Connection
+connectDB();
 
-// Health check
+// Socket.IO Connection
+io.on('connection', (socket) => {
+    console.log('✅ Client connected:', socket.id);
+    
+    socket.on('disconnect', () => {
+        console.log('❌ Client disconnected:', socket.id);
+    });
+});
+
+// Health Check (Railway anti-sleep)
 app.get('/health', (req, res) => {
-    res.status(200).json({
+    res.json({
         status: 'healthy',
-        uptime: process.uptime(),
-        port: PORT,
+        uptime: Math.floor(process.uptime()),
+        mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
         timestamp: new Date().toISOString()
     });
 });
 
-// Root route
+// Root Route
 app.get('/', (req, res) => {
-    res.send(`
-<!DOCTYPE html>
-<html>
-<head>
-    <title>WA Cloud Sender Seva</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-        }
-        .container {
-            text-align: center;
-            padding: 40px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-            max-width: 800px;
-        }
-        h1 { font-size: 48px; margin-bottom: 20px; }
-        p { font-size: 20px; margin: 10px 0; }
-        .status { 
-            background: #10b981; 
-            padding: 10px 20px; 
-            border-radius: 10px;
-            display: inline-block;
-            margin: 20px 0;
-        }
-        .btn {
-            color: white;
-            text-decoration: none;
-            background: #3b82f6;
-            padding: 15px 30px;
-            border-radius: 10px;
-            display: inline-block;
-            margin: 10px;
-        }
-        .feature {
-            background: rgba(255,255,255,0.2);
-            padding: 20px;
-            border-radius: 10px;
-            margin: 20px 0;
-            text-align: left;
-        }
-        .feature-list {
-            list-style: none;
-            padding: 0;
-        }
-        .feature-list li {
-            padding: 5px 0;
-        }
-        .feature-list li::before {
-            content: "✅ ";
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>🚀 WA Cloud Sender Seva</h1>
-        <div class="status">✅ Server Running on Railway</div>
-        <p><strong>Version:</strong> 7.1</p>
-        <p><strong>Port:</strong> ${PORT}</p>
-        <p><strong>Uptime:</strong> ${Math.floor(process.uptime())} seconds</p>
-        
-        <div class="feature">
-            <h2>📋 Available Features:</h2>
-            <ul class="feature-list">
-                <li>WhatsApp Bulk Messaging</li>
-                <li>User Authentication</li>
-                <li>Campaign Management</li>
-                <li>Contact Management</li>
-                <li>Real-time Updates</li>
-                <li>Anti-Ban Protection</li>
-            </ul>
-        </div>
-        
-        <a href="/health" class="btn">Health Check</a>
-        <a href="/api" class="btn">API Info</a>
-    </div>
-</body>
-</html>
-    `);
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// API info
+// API Info
 app.get('/api', (req, res) => {
     res.json({
         name: 'WA Cloud Sender Seva API',
-        version: '7.1',
+        version: '9.0.0',
         status: 'running',
-        port: PORT,
+        admin: 'sachinbamniya0143@gmail.com',
+        features: [
+            'User Authentication (JWT)',
+            'Campaign Management',
+            'Contact Management',
+            'CSV/Excel Import',
+            'Scheduled Campaigns',
+            'Real-time Updates (Socket.IO)',
+            'MongoDB Integration',
+            'Anti-ban Protection'
+        ],
         endpoints: {
             auth: {
                 register: 'POST /api/auth/register',
                 login: 'POST /api/auth/login'
             },
-            health: 'GET /health',
-            api: 'GET /api'
+            campaigns: {
+                create: 'POST /api/campaigns',
+                getAll: 'GET /api/campaigns',
+                getOne: 'GET /api/campaigns/:id',
+                delete: 'DELETE /api/campaigns/:id'
+            },
+            contacts: {
+                getAll: 'GET /api/contacts',
+                create: 'POST /api/contacts',
+                import: 'POST /api/contacts/import',
+                delete: 'DELETE /api/contacts/:id'
+            }
         }
     });
 });
 
-// Mount routes
-app.use('/api/auth', authRoutes);
+// Import Routes
+const authRoutes = require('./routes/auth');
+const campaignRoutes = require('./routes/campaign');
+const contactRoutes = require('./routes/contact');
 
-// 404 handler
+// Mount Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/campaigns', campaignRoutes);
+app.use('/api/contacts', contactRoutes);
+
+// 404 Handler
 app.use((req, res) => {
     res.status(404).json({
         success: false,
@@ -147,20 +106,37 @@ app.use((req, res) => {
     });
 });
 
-// Start server
-server.listen(PORT, HOST, () => {
+// Error Handler
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({
+        success: false,
+        error: err.message || 'Internal Server Error'
+    });
+});
+
+// Start Scheduler
+startScheduler(io);
+
+// Start Server
+server.listen(PORT, '0.0.0.0', () => {
     console.log('\n' + '='.repeat(70));
-    console.log('🚀 WA CLOUD SENDER SEVA - Server Started!');
+    console.log('🚀 WA CLOUD SENDER SEVA - Production Server');
     console.log('='.repeat(70));
-    console.log(`📡 Server running on ${HOST}:${PORT}`);
+    console.log(`📡 Server: http://localhost:${PORT}`);
     console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`⏰ Started at: ${new Date().toISOString()}`);
+    console.log(`👤 Admin: sachinbamniya0143@gmail.com`);
+    console.log(`⏰ Started: ${new Date().toLocaleString('en-IN')}`);
     console.log('='.repeat(70) + '\n');
 });
 
+// Graceful Shutdown
 process.on('SIGTERM', () => {
-    console.log('SIGTERM received, closing server...');
-    server.close(() => process.exit(0));
+    console.log('⚠️  SIGTERM received, closing server...');
+    server.close(() => {
+        mongoose.connection.close();
+        process.exit(0);
+    });
 });
 
-module.exports = { app, server };
+module.exports = { app, server, io };

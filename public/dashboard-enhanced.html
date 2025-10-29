@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - WA Cloud Sender Seva</title>
+    <style>
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5568d3;
+            --secondary: #764ba2;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --white: #ffffff;
+            --shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--gray-50);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--white);
+            padding: 1rem 2rem;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo { font-size: 1.5rem; font-weight: 700; }
+        
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-info { text-align: right; }
+        .user-name { font-weight: 600; }
+        .user-role { font-size: 0.85rem; opacity: 0.9; }
+
+        .btn-logout {
+            padding: 0.5rem 1.25rem;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 0.5rem;
+            color: var(--white);
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-logout:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .stat-icon.primary { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: var(--white); }
+        .stat-icon.success { background: #d1fae5; color: var(--success); }
+        .stat-icon.info { background: #dbeafe; color: var(--info); }
+        .stat-icon.warning { background: #fef3c7; color: var(--warning); }
+
+        .stat-content h3 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--gray-800);
+        }
+
+        .stat-content p {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .action-btn {
+            background: var(--white);
+            padding: 1.25rem;
+            border-radius: 1rem;
+            box-shadow: var(--shadow);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary);
+        }
+
+        .action-btn .icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .action-btn .label {
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+
+        /* Recent Activity */
+        .activity-section {
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--gray-800);
+        }
+
+        .activity-item {
+            padding: 1rem;
+            border-left: 3px solid var(--primary);
+            background: var(--gray-50);
+            border-radius: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .activity-time {
+            font-size: 0.8rem;
+            color: var(--gray-600);
+        }
+
+        /* Status Badge */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge.success { background: #d1fae5; color: var(--success); }
+        .badge.danger { background: #fee2e2; color: var(--danger); }
+        .badge.warning { background: #fef3c7; color: var(--warning); }
+        .badge.info { background: #dbeafe; color: var(--info); }
+
+        /* Real-time indicator */
+        .realtime-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--gray-50);
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .pulse {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            .stats-grid, .quick-actions { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">🚀 WA Cloud Sender</div>
+            <div class="user-menu">
+                <div class="realtime-indicator">
+                    <span class="pulse"></span>
+                    <span>Live</span>
+                </div>
+                <div class="user-info">
+                    <div class="user-name" id="userName">Loading...</div>
+                    <div class="user-role" id="userRole">User</div>
+                </div>
+                <button class="btn-logout" onclick="logout()">Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon primary">📊</div>
+                <div class="stat-content">
+                    <h3 id="messagesQuota">0</h3>
+                    <p>Monthly Quota</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon success">✉️</div>
+                <div class="stat-content">
+                    <h3 id="messagesSent">0</h3>
+                    <p>Messages Sent</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon info">📇</div>
+                <div class="stat-content">
+                    <h3 id="totalContacts">0</h3>
+                    <p>Total Contacts</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon warning">🚀</div>
+                <div class="stat-content">
+                    <h3 id="activeCampaigns">0</h3>
+                    <p>Active Campaigns</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            <div class="action-btn" onclick="alert('Coming soon!')">
+                <div class="icon">📧</div>
+                <div class="label">New Campaign</div>
+            </div>
+
+            <div class="action-btn" onclick="alert('Coming soon!')">
+                <div class="icon">📇</div>
+                <div class="label">Import Contacts</div>
+            </div>
+
+            <div class="action-btn" onclick="alert('Coming soon!')">
+                <div class="icon">📱</div>
+                <div class="label">Connect WhatsApp</div>
+            </div>
+
+            <div class="action-btn" onclick="alert('Coming soon!')">
+                <div class="icon">📊</div>
+                <div class="label">View Analytics</div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="activity-section">
+            <div class="section-header">
+                <h2 class="section-title">Recent Activity</h2>
+                <span class="badge info">Live Updates</span>
+            </div>
+
+            <div id="activityList">
+                <div class="activity-item">
+                    <strong>System</strong> • <span class="activity-time">Just now</span>
+                    <p>Dashboard loaded successfully</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // Check auth
+        const token = localStorage.getItem('wacloud_token');
+        const user = JSON.parse(localStorage.getItem('wacloud_user') || '{}');
+
+        if (!token) window.location.href = '/';
+
+        // Display user info
+        document.getElementById('userName').textContent = user.name || 'User';
+        document.getElementById('userRole').textContent = (user.role || 'user').toUpperCase();
+        
+        // Display stats
+        document.getElementById('messagesQuota').textContent = user.messagesQuota || 0;
+        document.getElementById('messagesSent').textContent = user.messagesUsed || 0;
+
+        // Socket.IO connection
+        const socket = io({
+            auth: { token }
+        });
+
+        socket.on('connect', () => {
+            console.log('✅ Socket.IO connected');
+            socket.emit('join', user.id);
+            addActivity('Connected to real-time updates');
+        });
+
+        socket.on('campaign:progress', (data) => {
+            addActivity(`Campaign "${data.name}" progress: ${data.percentage}%`);
+        });
+
+        function addActivity(message) {
+            const item = document.createElement('div');
+            item.className = 'activity-item';
+            item.innerHTML = `
+                <strong>System</strong> • <span class="activity-time">Just now</span>
+                <p>${message}</p>
+            `;
+            document.getElementById('activityList').prepend(item);
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/';
+        }
+
+        // Fetch real stats
+        fetch('/api/auth/me', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('totalContacts').textContent = '0'; // TODO: fetch contacts count
+            }
+        });
+    </script>
+</body>
+</html>

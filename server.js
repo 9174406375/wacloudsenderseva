@@ -8,46 +8,34 @@ const socketIO = require('socket.io');
 const path = require('path');
 const fs = require('fs');
 const { connectDB } = require('./config/database');
-const schedulerService = require('./services/schedulerService');
 
 // Initialize Express
 const app = express();
 const server = http.createServer(app);
 
-// Socket.IO setup
+// Socket.IO
 const io = socketIO(server, {
-    cors: {
-        origin: '*',
-        methods: ['GET', 'POST']
-    }
+    cors: { origin: '*', methods: ['GET', 'POST'] }
 });
 
-// Environment variables
 const PORT = process.env.PORT || 3000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
 // ==========================================
 // MIDDLEWARE
 // ==========================================
-app.use(helmet({
-    contentSecurityPolicy: false,
-    crossOriginEmbedderPolicy: false
-}));
+app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
 app.use(compression());
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Create required directories
-const dirs = ['uploads', 'sessions', 'public'];
-dirs.forEach(dir => {
-    if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-    }
+// Create directories
+['uploads', 'sessions', 'public'].forEach(dir => {
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 });
 
-// Static files
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static('public'));
 
 // Request logger
 app.use((req, res, next) => {
@@ -56,26 +44,61 @@ app.use((req, res, next) => {
 });
 
 // ==========================================
-// DATABASE CONNECTION
+// CONNECT DATABASE
 // ==========================================
-connectDB();
+let dbConnected = false;
+connectDB()
+    .then(() => {
+        dbConnected = true;
+        console.log('✅ Database ready!');
+        
+        // Auto-create admin if not exists
+        const User = require('./models/User');
+        User.findOne({ email: 'sachinbamniya0143@gmail.com' })
+            .then(admin => {
+                if (!admin) {
+                    console.log('📝 Creating admin user...');
+                    return User.create({
+                        name: 'Sachin Bamniya',
+                        email: 'sachinbamniya0143@gmail.com',
+                        phone: '+919174406375',
+                        password: 'admin@2025',
+                        role: 'superadmin',
+                        permissions: {
+                            canCreateCampaigns: true,
+                            canImportContacts: true,
+                            canUseTemplates: true,
+                            canAccessAnalytics: true,
+                            canManageOrders: true,
+                            canAccessAdmin: true,
+                            maxCampaignsPerDay: 9999,
+                            maxContactsPerCampaign: 999999,
+                            maxOrdersPerDay: 9999
+                        },
+                        isActive: true,
+                        isVerified: true
+                    });
+                }
+            })
+            .then(admin => {
+                if (admin) {
+                    console.log('✅ Admin user ready!');
+                    console.log('📧 Email: sachinbamniya0143@gmail.com');
+                    console.log('🔐 Password: admin@2025');
+                }
+            })
+            .catch(err => console.error('Admin creation error:', err));
+    })
+    .catch(err => {
+        console.error('❌ Database connection failed:', err.message);
+    });
 
-// ==========================================
-// SOCKET.IO EVENTS
-// ==========================================
+// Socket.IO
 io.on('connection', (socket) => {
-    console.log('✅ Socket client connected:', socket.id);
-
-    socket.on('disconnect', () => {
-        console.log('❌ Socket client disconnected:', socket.id);
-    });
-
-    socket.on('error', (error) => {
-        console.error('Socket error:', error);
-    });
+    console.log('✅ Socket connected:', socket.id);
+    socket.on('disconnect', () => console.log('❌ Socket disconnected:', socket.id));
 });
 
-// Make io accessible to routes
 app.set('io', io);
 
 // ==========================================
@@ -92,7 +115,8 @@ app.get('/health', (req, res) => {
         uptime: process.uptime(),
         timestamp: new Date().toISOString(),
         environment: NODE_ENV,
-        mongodb: require('mongoose').connection.readyState === 1 ? 'connected' : 'disconnected'
+        mongodb: dbConnected ? 'connected' : 'disconnected',
+        port: PORT
     });
 });
 
@@ -101,23 +125,18 @@ app.get('/api', (req, res) => {
         success: true,
         name: 'WA Complete Mega System API',
         version: '11.0.0-FINAL',
-        description: 'Complete WhatsApp Order Bot + Bulk Sender + Admin Panel',
         admin: 'sachinbamniya0143@gmail.com',
+        adminPassword: 'admin@2025',
+        mongodb: dbConnected ? 'connected' : 'disconnected',
         features: [
-            '📦 Book Order Management System',
-            '📱 WhatsApp Integration (Baileys v6.7.8)',
-            '🔐 Pairing Code + QR Code Support',
-            '📧 Bulk Messaging with Anti-ban',
-            '📊 Campaign Scheduling & Management',
-            '👥 Contact Management with Excel/CSV Import',
-            '📍 Pincode-based Filtering',
-            '📝 Message Templates',
-            '👨‍💼 Admin Panel & User Management',
-            '📈 Advanced Analytics & Reports',
-            '⏰ Cron Job Scheduler',
-            '🔄 Real-time Updates (Socket.IO)',
-            '🛡️  Security with JWT & Helmet',
-            '💾 MongoDB Database'
+            '📦 Book Order Management',
+            '📱 WhatsApp Integration',
+            '📧 Bulk Messaging',
+            '📊 Campaign Management',
+            '👥 Contact Management',
+            '📝 Templates',
+            '👨‍💼 Admin Panel',
+            '📈 Analytics'
         ],
         endpoints: {
             auth: {
@@ -125,67 +144,27 @@ app.get('/api', (req, res) => {
                 login: 'POST /api/auth/login',
                 me: 'GET /api/auth/me'
             },
-            orders: {
-                create: 'POST /api/orders',
-                getAll: 'GET /api/orders',
-                getOne: 'GET /api/orders/:id',
-                updateStatus: 'PUT /api/orders/:id/status',
-                stats: 'GET /api/orders/analytics/stats',
-                byPincode: 'GET /api/orders/pincode/:pincode'
-            },
-            campaigns: {
-                create: 'POST /api/campaigns',
-                getAll: 'GET /api/campaigns',
-                getOne: 'GET /api/campaigns/:id',
-                update: 'PUT /api/campaigns/:id',
-                delete: 'DELETE /api/campaigns/:id',
-                start: 'POST /api/campaigns/:id/start'
-            },
-            contacts: {
-                getAll: 'GET /api/contacts',
-                create: 'POST /api/contacts',
-                import: 'POST /api/contacts/import',
-                getOne: 'GET /api/contacts/:id',
-                update: 'PUT /api/contacts/:id',
-                delete: 'DELETE /api/contacts/:id',
-                stats: 'GET /api/contacts/analytics/overview'
-            },
-            whatsapp: {
-                connect: 'POST /api/whatsapp/connect',
-                status: 'GET /api/whatsapp/status',
-                disconnect: 'POST /api/whatsapp/disconnect',
-                send: 'POST /api/whatsapp/send'
-            },
-            templates: {
-                getAll: 'GET /api/templates',
-                create: 'POST /api/templates',
-                getOne: 'GET /api/templates/:id',
-                update: 'PUT /api/templates/:id',
-                delete: 'DELETE /api/templates/:id'
-            },
-            admin: {
-                users: 'GET /api/admin/users',
-                permissions: 'PUT /api/admin/users/:id/permissions',
-                dashboard: 'GET /api/admin/dashboard'
-            },
-            analytics: {
-                overview: 'GET /api/analytics/overview',
-                orders: 'GET /api/analytics/orders',
-                campaigns: 'GET /api/analytics/campaigns'
-            }
+            orders: 'See /api for full docs',
+            campaigns: 'See /api for full docs',
+            contacts: 'See /api for full docs'
         }
     });
 });
 
-// Mount API routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/orders', require('./routes/orders'));
-app.use('/api/campaigns', require('./routes/campaigns'));
-app.use('/api/contacts', require('./routes/contacts'));
-app.use('/api/whatsapp', require('./routes/whatsapp'));
-app.use('/api/templates', require('./routes/templates'));
-app.use('/api/admin', require('./routes/admin'));
-app.use('/api/analytics', require('./routes/analytics'));
+// API Routes
+try {
+    app.use('/api/auth', require('./routes/auth'));
+    app.use('/api/orders', require('./routes/orders'));
+    app.use('/api/campaigns', require('./routes/campaigns'));
+    app.use('/api/contacts', require('./routes/contacts'));
+    app.use('/api/whatsapp', require('./routes/whatsapp'));
+    app.use('/api/templates', require('./routes/templates'));
+    app.use('/api/admin', require('./routes/admin'));
+    app.use('/api/analytics', require('./routes/analytics'));
+    console.log('✅ All routes loaded!');
+} catch (error) {
+    console.error('❌ Route loading error:', error.message);
+}
 
 // ==========================================
 // ERROR HANDLING
@@ -194,12 +173,18 @@ app.use((req, res) => {
     res.status(404).json({
         success: false,
         error: 'Route not found',
-        path: req.originalUrl
+        path: req.originalUrl,
+        availableRoutes: [
+            '/api',
+            '/health',
+            '/api/auth/register',
+            '/api/auth/login'
+        ]
     });
 });
 
 app.use((err, req, res, next) => {
-    console.error('❌ Error:', err.stack);
+    console.error('❌ Error:', err);
     res.status(err.status || 500).json({
         success: false,
         error: err.message || 'Internal Server Error',
@@ -212,30 +197,21 @@ app.use((err, req, res, next) => {
 // ==========================================
 server.listen(PORT, '0.0.0.0', () => {
     console.log('\n' + '='.repeat(80));
-    console.log('🚀 WA COMPLETE MEGA SYSTEM - PRODUCTION SERVER STARTED');
+    console.log('🚀 WA COMPLETE MEGA SYSTEM - SERVER STARTED');
     console.log('='.repeat(80));
-    console.log(`📡 Server URL: http://localhost:${PORT}`);
+    console.log(`📡 Server: http://localhost:${PORT}`);
     console.log(`🌐 Environment: ${NODE_ENV}`);
     console.log(`👤 Admin: sachinbamniya0143@gmail.com`);
-    console.log(`📅 Started: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`);
-    console.log(`⚡ Node Version: ${process.version}`);
+    console.log(`🔐 Password: admin@2025`);
+    console.log(`📅 Time: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`);
     console.log('='.repeat(80));
-    console.log('\n✅ All systems ready!');
-    console.log('📦 Features: Orders + Campaigns + Contacts + WhatsApp + Templates + Admin');
-    console.log('🔐 Security: JWT + Helmet + Rate Limiting');
-    console.log('📊 Database: MongoDB Connected');
-    console.log('⏰ Schedulers: Active\n');
-    
-    // Start schedulers
-    schedulerService.startAll(io);
+    console.log('✅ Ready to accept requests!\n');
 });
 
-// Graceful shutdown
 process.on('SIGTERM', () => {
-    console.log('⚠️  SIGTERM signal received, closing server gracefully...');
+    console.log('⚠️  SIGTERM received, closing...');
     server.close(() => {
         console.log('✅ Server closed');
-        schedulerService.stopAll();
         process.exit(0);
     });
 });

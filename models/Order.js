@@ -1,27 +1,43 @@
 /**
  * ═══════════════════════════════════════════════════════════════
- * CONTACT LIST MODEL
+ * ORDER MODEL - WhatsApp Order Management
  * ═══════════════════════════════════════════════════════════════
  */
 
 const mongoose = require('mongoose');
 
-const contactListSchema = new mongoose.Schema({
+const orderSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true
     },
-    name: {
+    customerPhone: {
         type: String,
         required: true
     },
-    description: String,
-    contacts: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Contact'
-    }],
-    tags: [String],
+    customerName: {
+        type: String,
+        required: true
+    },
+    orderDetails: {
+        type: String,
+        required: true
+    },
+    status: {
+        type: String,
+        enum: ['pending', 'confirmed', 'cancelled', 'delivered'],
+        default: 'pending'
+    },
+    source: {
+        type: String,
+        default: 'whatsapp'
+    },
+    amount: {
+        type: Number,
+        default: 0
+    },
+    notes: String,
     createdAt: {
         type: Date,
         default: Date.now
@@ -32,4 +48,4 @@ const contactListSchema = new mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model('ContactList', contactListSchema);
+module.exports = mongoose.model('Order', orderSchema);

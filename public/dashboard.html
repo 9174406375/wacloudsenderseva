@@ -742,3 +742,43 @@ window.addEventListener('load', () => {
     setTimeout(checkWhatsAppStatus, 2000);
 });
 </script>
+
+<script>
+// Enhanced WhatsApp QR with Timer
+let qrTimerInterval = null;
+
+socket.on('whatsapp:qr', (data) => {
+    document.getElementById('qr-code').style.display = 'block';
+    document.getElementById('qr-image').src = data.qrImage;
+    updateWhatsAppStatus('connecting');
+    
+    // Show timer
+    document.getElementById('qr-timer').textContent = `QR expires in ${data.timer}s`;
+    
+    addLog(`QR Code generated. Scan within ${data.timer} seconds`, 'info');
+});
+
+socket.on('whatsapp:qr:timer', (data) => {
+    // Update timer countdown
+    document.getElementById('qr-timer').textContent = `QR expires in ${data.timer}s`;
+    
+    if (data.timer <= 10) {
+        document.getElementById('qr-timer').style.color = 'red';
+    }
+});
+
+socket.on('whatsapp:qr:expired', (data) => {
+    document.getElementById('qr-code').style.display = 'none';
+    addLog(data.message, 'warning');
+    updateWhatsAppStatus('disconnected');
+});
+
+// Add timer element to QR code display
+const qrCodeDiv = document.getElementById('qr-code');
+if (!document.getElementById('qr-timer')) {
+    const timerEl = document.createElement('p');
+    timerEl.id = 'qr-timer';
+    timerEl.style.cssText = 'margin-top: 10px; font-size: 18px; font-weight: bold; color: #667eea;';
+    qrCodeDiv.appendChild(timerEl);
+}
+</script>

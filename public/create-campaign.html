@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Campaign - WA Cloud Sender Seva</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            color: #2E3A59;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+            padding-bottom: 30px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .form-section:last-child {
+            border-bottom: none;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .info-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .variable-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .variable-tag {
+            background: #667eea;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 5px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .variable-tag:hover {
+            background: #764ba2;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .alert.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .alert.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Create New Campaign</h1>
+
+        <div id="alert" class="alert"></div>
+
+        <form id="campaign-form">
+            <!-- Basic Details -->
+            <div class="form-section">
+                <div class="section-title">📝 Basic Details</div>
+                
+                <div class="form-group">
+                    <label>Campaign Name *</label>
+                    <input type="text" id="campaign-name" required placeholder="e.g., Diwali Offer 2025">
+                </div>
+
+                <div class="form-group">
+                    <label>Select Contact List *</label>
+                    <select id="contact-list" required>
+                        <option value="">-- Select List --</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Message Content -->
+            <div class="form-section">
+                <div class="section-title">💬 Message Content</div>
+                
+                <div class="form-group">
+                    <label>Message *</label>
+                    <textarea id="message" required placeholder="Type your message here..."></textarea>
+                    
+                    <div class="variable-tags">
+                        <span class="variable-tag" onclick="insertVariable('{{name}}')">{{name}}</span>
+                        <span class="variable-tag" onclick="insertVariable('{{phone}}')">{{phone}}</span>
+                        <span class="variable-tag" onclick="insertVariable('{{email}}')">{{email}}</span>
+                        <span class="variable-tag" onclick="insertVariable('{{city}}')">{{city}}</span>
+                        <span class="variable-tag" onclick="insertVariable('{{village}}')">{{village}}</span>
+                    </div>
+
+                    <div class="info-box">
+                        💡 Click variable tags to insert. They will be replaced with actual contact data.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Anti-Ban Settings -->
+            <div class="form-section">
+                <div class="section-title">🛡️ Anti-Ban Protection</div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Minimum Delay (seconds) *</label>
+                        <input type="number" id="min-delay" value="3" min="1" max="30" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Maximum Delay (seconds) *</label>
+                        <input type="number" id="max-delay" value="10" min="5" max="60" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Batch Size *</label>
+                        <input type="number" id="batch-size" value="20" min="5" max="100" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Cooldown Period (seconds) *</label>
+                        <input type="number" id="cooldown" value="60" min="30" max="300" required>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    🛡️ Random delay between messages helps avoid WhatsApp ban. 
+                    Recommended: 3-10 seconds delay, 20 batch size, 60s cooldown.
+                </div>
+            </div>
+
+            <!-- Scheduling -->
+            <div class="form-section">
+                <div class="section-title">⏰ Delivery Settings</div>
+                
+                <div class="form-group">
+                    <label>Daily Percentage *</label>
+                    <select id="daily-percentage">
+                        <option value="10">10% per day (Safest)</option>
+                        <option value="20">20% per day</option>
+                        <option value="30">30% per day</option>
+                        <option value="50">50% per day</option>
+                        <option value="100" selected>100% (Send All)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Schedule For (Optional)</label>
+                    <input type="datetime-local" id="schedule-time">
+                </div>
+
+                <div class="info-box">
+                    📊 Percentage-based sending: Send 10% today, 20% tomorrow, etc. 
+                    Helps avoid spam detection for large contact lists.
+                </div>
+            </div>
+
+            <!-- Submit Buttons -->
+            <div style="display: flex; gap: 15px;">
+                <button type="button" class="btn btn-secondary" onclick="window.location.href='/dashboard.html'">
+                    Cancel
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    Create Campaign
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Load contact lists
+        async function loadContactLists() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/lists', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+
+                const select = document.getElementById('contact-list');
+                if (data.success && data.data.length > 0) {
+                    data.data.forEach(list => {
+                        const option = document.createElement('option');
+                        option.value = list._id;
+                        option.textContent = `${list.name} (${list.contacts.length} contacts)`;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to load lists:', error);
+            }
+        }
+
+        // Insert variable
+        function insertVariable(variable) {
+            const textarea = document.getElementById('message');
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = textarea.value;
+            textarea.value = text.substring(0, start) + variable + text.substring(end);
+            textarea.focus();
+        }
+
+        // Show alert
+        function showAlert(message, type) {
+            const alert = document.getElementById('alert');
+            alert.textContent = message;
+            alert.className = `alert ${type} show`;
+        }
+
+        // Handle form submit
+        document.getElementById('campaign-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const campaignData = {
+                name: document.getElementById('campaign-name').value,
+                message: document.getElementById('message').value,
+                contactList: document.getElementById('contact-list').value,
+                scheduledFor: document.getElementById('schedule-time').value || null,
+                deliverySettings: {
+                    minDelay: parseInt(document.getElementById('min-delay').value) * 1000,
+                    maxDelay: parseInt(document.getElementById('max-delay').value) * 1000,
+                    batchSize: parseInt(document.getElementById('batch-size').value),
+                    cooldownPeriod: parseInt(document.getElementById('cooldown').value) * 1000,
+                    dailyPercentage: parseInt(document.getElementById('daily-percentage').value)
+                }
+            };
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/campaigns', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(campaignData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert('Campaign created successfully! Redirecting...', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/dashboard.html';
+                    }, 2000);
+                } else {
+                    showAlert(data.error || 'Failed to create campaign', 'error');
+                }
+
+            } catch (error) {
+                showAlert('Error: ' + error.message, 'error');
+            }
+        });
+
+        // Load lists on page load
+        loadContactLists();
+    </script>
+</body>
+</html>

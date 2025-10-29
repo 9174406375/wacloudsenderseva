@@ -2,126 +2,74 @@ const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/auth');
 const whatsappService = require('../services/whatsappService');
-const QRCode = require('qrcode');
 
-// @route   POST /api/whatsapp/connect
-// @desc    Connect WhatsApp (QR or Pairing Code)
-// @access  Private
-router.post('/connect', protect, async (req, res) => {
-    try {
-        const { phoneNumber } = req.body;
-        
-        const result = await whatsappService.connect(
-            req.user.id.toString(),
-            phoneNumber
-        );
-
-        if (result.type === 'qr_code' && result.qr) {
-            // Generate QR code as base64 image
-            const qrImage = await QRCode.toDataURL(result.qr);
-            
-            res.json({
-                success: true,
-                type: 'qr_code',
-                qrCode: qrImage,
-                message: 'Scan QR code with WhatsApp'
-            });
-        } else if (result.type === 'pairing_code') {
-            res.json({
-                success: true,
-                type: 'pairing_code',
-                code: result.code,
-                message: 'Enter pairing code in WhatsApp'
-            });
-        } else {
-            res.json({
-                success: true,
-                message: 'Connecting...'
-            });
-        }
-
-    } catch (error) {
-        console.error('WhatsApp connect error:', error);
-        res.status(500).json({ 
-            success: false, 
-            error: error.message 
-        });
-    }
-});
-
-// @route   GET /api/whatsapp/status
-// @desc    Get WhatsApp connection status
-// @access  Private
+// Status endpoint
 router.get('/status', protect, async (req, res) => {
-    try {
-        const status = whatsappService.getStatus();
-        
-        res.json({
-            success: true,
-            data: status
-        });
-
-    } catch (error) {
-        res.status(500).json({ 
-            success: false, 
-            error: error.message 
-        });
-    }
+    res.json({
+        success: true,
+        status: 'disabled_termux',
+        message: 'WhatsApp will be enabled on Railway deployment',
+        environment: process.env.NODE_ENV || 'development'
+    });
 });
 
-// @route   POST /api/whatsapp/disconnect
-// @desc    Disconnect WhatsApp
-// @access  Private
-router.post('/disconnect', protect, async (req, res) => {
-    try {
-        await whatsappService.disconnect();
-        
-        // Update user
-        req.user.whatsapp.connected = false;
-        req.user.whatsapp.sessionData = null;
-        await req.user.save();
-
-        res.json({
-            success: true,
-            message: 'WhatsApp disconnected successfully'
-        });
-
-    } catch (error) {
-        res.status(500).json({ 
-            success: false, 
-            error: error.message 
-        });
-    }
+// Connect endpoint (placeholder)
+router.post('/connect', protect, async (req, res) => {
+    const result = await whatsappService.initializeClient(req.user._id.toString());
+    res.json(result);
 });
 
-// @route   POST /api/whatsapp/send
-// @desc    Send single message
-// @access  Private
+// Send message (placeholder)
 router.post('/send', protect, async (req, res) => {
-    try {
-        const { to, message, mediaUrl, mediaType } = req.body;
-
-        const result = await whatsappService.sendMessage(to, message, {
-            mediaUrl,
-            mediaType
-        });
-
-        if (result.success) {
-            req.user.stats.totalMessagesSent++;
-            await req.user.save();
-        }
-
-        res.json({
-            success: result.success,
-            data: result
-        });
-
-    } catch (error) {
-        res.status(500).json({ 
-            success: false, 
-            error: error.message 
+    const { phoneNumber, message } = req.body;
+    
+    if (!phoneNumber || !message) {
+        return res.status(400).json({
+            success: false,
+            message: 'Phone number and message required'
         });
     }
+
+    const result = await whatsappService.sendMessage(
+        req.user._id.toString(),
+        phoneNumber,
+        message
+    );
+
+    res.json(result);
+});
+
+// Bulk send (placeholder)
+router.post('/bulk', protect, async (req, res) => {
+    const { recipients, message } = req.body;
+    
+    if (!recipients || !Array.isArray(recipients) || recipients.length === 0) {
+        return res.status(400).json({
+            success: false,
+            message: 'Recipients array required'
+        });
+    }
+
+    if (!message) {
+        return res.status(400).json({
+            success: false,
+            message: 'Message required'
+        });
+    }
+
+    const result = await whatsappService.sendBulkMessages(
+        req.user._id.toString(),
+        recipients,
+        message
+    );
+
+    res.json(result);
+});
+
+// Disconnect endpoint
+router.post('/disconnect', protect, async (req, res) => {
+    const result = await whatsappService.disconnectClient(req.user._id.toString());
+    res.json(result);
 });
 
 module.exports = router;

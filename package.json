@@ -3,16 +3,13 @@
   "version": "3.1.0",
   "description": "Complete WhatsApp Bulk Sender + Book Order System",
   "main": "server.js",
-  "type": "commonjs",
   "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=9.0.0"
+    "node": "18.x",
+    "npm": "9.x"
   },
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js",
-    "build": "echo 'Build complete'",
-    "test": "echo 'Tests passed'"
+    "build": "npm install"
   },
   "dependencies": {
     "express": "^4.18.2",
@@ -30,18 +27,9 @@
     "multer": "^1.4.5-lts.1",
     "csv-parser": "^3.0.0",
     "xlsx": "^0.18.5",
-    "nodemailer": "^6.9.7",
-    "socket.io": "^4.7.4"
+    "nodemailer": "^6.9.7"
   },
-  "keywords": [
-    "whatsapp",
-    "bulk-sender",
-    "book-orders",
-    "campaign-management",
-    "mongodb",
-    "oauth",
-    "railway"
-  ],
+  "keywords": ["whatsapp", "bulk-sender", "book-orders"],
   "author": "Sachin Bamniya <sachinbamniya0143@gmail.com>",
   "license": "ISC"
 }

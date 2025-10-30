@@ -2,22 +2,20 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Install dependencies first (cache layer)
+# Copy package files
 COPY package*.json ./
-RUN npm ci --production --ignore-scripts && \
-    npm cache clean --force
+
+# Install dependencies
+RUN npm ci --production --ignore-scripts && npm cache clean --force
 
 # Copy application
 COPY . .
 
-# Create required directories
-RUN mkdir -p uploads wwebjs_auth logs && \
-    chmod -R 755 uploads wwebjs_auth logs
+# Create directories
+RUN mkdir -p uploads wwebjs_auth logs && chmod -R 755 uploads wwebjs_auth logs
 
-# Non-root user (security)
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001 && \
-    chown -R nodejs:nodejs /app
+# Non-root user
+RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001 && chown -R nodejs:nodejs /app
 
 USER nodejs
 

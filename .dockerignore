@@ -1,13 +1,44 @@
+# Dependencies
 node_modules/
-.git/
-.env
-*.log
-.DS_Store
 npm-debug.log
+package-lock.json
+
+# Build files
+.nixpacks/
+*.nix
+
+# Git
+.git/
 .gitignore
-README.md
+
+# Environment
+.env
+.env.local
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
 .vscode/
+.idea/
+
+# Temp
+tmp/
+temp/
+*.tmp
+
+# Testing
 coverage/
-.npm/
+.nyc_output/
+
+# WhatsApp session (will be created in container)
 wwebjs_auth/
+.wwebjs_cache/
+
+# Uploads
 uploads/
